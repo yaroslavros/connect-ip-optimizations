@@ -7,7 +7,9 @@
 <title>Reusable templates and checksum offload for CONNECT-IP</title>
 <meta content="Yaroslav Rosomakho" name="author">
 <meta content="
-       TODO Abstract 
+       This document defines extensions to the CONNECT-IP protocol (RFC 9484) that improve the efficiency of datagram transmission by introducing reusable templates and checksum offload capabilities. 
+       Reusable templates allow endpoints to associate Context Identifiers with static portions of packet headers, enabling datagrams to omit repeated byte sequences while remaining self-contained and stateless on the wire. Checksum offload enables endpoints to delegate computation of transport-layer checksums to the receiver by signaling the relevant offsets within the reconstructed packet. 
+       These optimisations reduce per-packet overhead, processing cost, and effectively increase the usable maximum transmission unit (MTU) when CONNECT-IP datagrams are encapsulated in QUIC DATAGRAM frames. 
     " name="description">
 <meta content="xml2rfc 3.30.2" name="generator">
 <meta content="template" name="keyword">
@@ -1081,7 +1083,9 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <h1 id="title">Reusable templates and checksum offload for CONNECT-IP</h1>
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
-<p id="section-abstract-1">TODO Abstract<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-1">This document defines extensions to the CONNECT-IP protocol (RFC 9484) that improve the efficiency of datagram transmission by introducing reusable templates and checksum offload capabilities.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-2">Reusable templates allow endpoints to associate Context Identifiers with static portions of packet headers, enabling datagrams to omit repeated byte sequences while remaining self-contained and stateless on the wire. Checksum offload enables endpoints to delegate computation of transport-layer checksums to the receiver by signaling the relevant offsets within the reconstructed packet.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
+<p id="section-abstract-3">These optimisations reduce per-packet overhead, processing cost, and effectively increase the usable maximum transmission unit (MTU) when CONNECT-IP datagrams are encapsulated in QUIC DATAGRAM frames.<a href="#section-abstract-3" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
       <h2 id="name-about-this-document">
@@ -1154,19 +1158,79 @@ svg :is([fill="white"], [fill^="#fff"]) {
             <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-conventions-and-definitions" class="internal xref">Conventions and Definitions</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
-            <p id="section-toc.1-1.3.1" class="keepWithNext"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-negotiation-of-capabilities" class="internal xref">Negotiation of Capabilities</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1">
+                <p id="section-toc.1-1.3.2.1.1" class="keepWithNext"><a href="#section-3.1" class="auto internal xref">3.1</a>.  <a href="#name-header-definition" class="internal xref">Header Definition</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2">
+                <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-negotiation-behavior" class="internal xref">Negotiation Behavior</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3">
+                <p id="section-toc.1-1.3.2.3.1"><a href="#section-3.3" class="auto internal xref">3.3</a>.  <a href="#name-example" class="internal xref">Example</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
-            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-optimization-capsules" class="internal xref">Optimization capsules</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-context-id-allocation" class="internal xref">Context ID allocation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-optimization_create-capsule" class="internal xref">OPTIMIZATION_CREATE capsule</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2.2.1">
+                    <p id="section-toc.1-1.4.2.2.2.1.1"><a href="#section-4.2.1" class="auto internal xref">4.2.1</a>.  <a href="#name-parsing-and-validation" class="internal xref">Parsing and validation</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-optimization_delete-capsule" class="internal xref">OPTIMIZATION_DELETE capsule</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
-            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-optimized-datagram-operatio" class="internal xref">Optimized Datagram Operation</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
+                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-sender-behavior" class="internal xref">Sender behavior</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
+                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-receiver-behavior" class="internal xref">Receiver behavior</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
-            <p id="section-toc.1-1.6.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
-            <p id="section-toc.1-1.7.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1">
+                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-http-capsule-types-registra" class="internal xref">HTTP Capsule Types Registration</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
+                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-http-field-name-registratio" class="internal xref">HTTP Field Name Registration</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1">
+                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
+                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
 </li>
         </ul>
 </nav>
@@ -1177,7 +1241,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
       <h2 id="name-introduction">
 <a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
       </h2>
-<p id="section-1-1">TODO Introduction<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-1">The CONNECT-IP method <span>[<a href="#CONNECT-IP" class="cite xref">CONNECT-IP</a>]</span> allows an HTTP client to establish an IP tunnel through an HTTP proxy and exchange IP packets using either HTTP/3 Datagrams specified in <span><a href="https://rfc-editor.org/rfc/rfc9297#section-2.1" class="relref">Section 2.1</a> of [<a href="#HTTP-DATAGRAMS" class="cite xref">HTTP-DATAGRAMS</a>]</span> or DATAGRAM capsules specified in <span><a href="https://rfc-editor.org/rfc/rfc9297#section-3.5" class="relref">Section 3.5</a> of [<a href="#HTTP-DATAGRAMS" class="cite xref">HTTP-DATAGRAMS</a>]</span>. Each packet is carried in full, including all transport and network headers, which provides simplicity and interoperability but incurs per-packet overhead due to the repeated transmission of largely invariant header fields.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">This document introduces two optional extensions, Reusable Templates and Checksum Offload, that optimise CONNECT-IP datagram transmission without changing the existing protocol semantics.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">Reusable templates allow endpoints to associate a Context Identifier with a reusable packet layout consisting of static and variable byte regions. Once a template has been installed using reliable Capsules, datagrams referencing the same Context Identifier carry only the variable portions of the packet. This reduces the size of transmitted datagrams and processing overhead, while maintaining on-the-wire statelessness and compatibility with intermediaries that are unaware of these optimisations.<a href="#section-1-3" class="pilcrow">¶</a></p>
+<p id="section-1-4">Checksum offload enables endpoints to delegate computation of transport-layer checksums to the receiver by identifying the checksum field offset and the start of the checksum coverage within the reconstructed packet. This mirrors hardware checksum-offload behavior used on network interfaces and tunnel devices, reducing per-packet CPU cost for encapsulating or decapsulating CONNECT-IP traffic.<a href="#section-1-4" class="pilcrow">¶</a></p>
+<p id="section-1-5">When CONNECT-IP datagrams are encapsulated in QUIC DATAGRAM frames, these optimisations also increase the effective maximum transmission unit (MTU) by reducing the number of bytes carried inside each QUIC packet.<a href="#section-1-5" class="pilcrow">¶</a></p>
+<p id="section-1-6">Both extensions are negotiated at CONNECT-IP establishment and signalled using Capsules on the reliable control stream. When necessary, endpoints can fall back to transmitting complete IP packets using Context ID 0, which represents unoptimised datagrams containing the full IP packet as defined in <span><a href="https://rfc-editor.org/rfc/rfc9484#section-5" class="relref">Section 5</a> of [<a href="#CONNECT-IP" class="cite xref">CONNECT-IP</a>]</span>.<a href="#section-1-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="conventions-and-definitions">
@@ -1189,39 +1258,411 @@ svg :is([fill="white"], [fill^="#fff"]) {
 "<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
 described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
 appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-2">The following terms are used in this document:<a href="#section-2-2" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-2-3">
+        <dt id="section-2-3.1">Context Identifier (CID):</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.2">
+          <p id="section-2-3.2.1">A numeric identifier associated with a specific packet reconstruction and processing behavior. A CONNECT-IP tunnel can maintain multiple CIDs in each direction. Context ID 0 always represents transmission of complete, unoptimised IP packets as defined in <span><a href="https://rfc-editor.org/rfc/rfc9484#section-5" class="relref">Section 5</a> of [<a href="#CONNECT-IP" class="cite xref">CONNECT-IP</a>]</span>.<a href="#section-2-3.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-3.3">Template:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.4">
+          <p id="section-2-3.4.1">A reusable packet layout consisting of a sequence of static and variable segments. Static segments contain bytes omitted from optimized datagrams, while variable segments correspond to bytes still carried in the datagram payload.<a href="#section-2-3.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-3.5">Checksum Offload:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.6">
+          <p id="section-2-3.6.1">A capability allowing the receiver to compute and finalize the Internet checksum according to <span>[<a href="#INCREMENTAL-CHECKSUM" class="cite xref">INCREMENTAL-CHECKSUM</a>]</span> for the reconstructed packet, based on two offsets: <code>Checksum Field Offset</code> and <code>Checksum Start Offset</code>.<a href="#section-2-3.6.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-3.7">Capsule:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.8">
+          <p id="section-2-3.8.1">A reliable control-stream message, as defined in <span><a href="https://rfc-editor.org/rfc/rfc9297#section-3" class="relref">Section 3</a> of [<a href="#HTTP-DATAGRAMS" class="cite xref">HTTP-DATAGRAMS</a>]</span>, used in this specification to signal creation or deletion of Context Identifiers and their associated templates.<a href="#section-2-3.8.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="negotiation">
+<section id="section-3">
+      <h2 id="name-negotiation-of-capabilities">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-negotiation-of-capabilities" class="section-name selfRef">Negotiation of Capabilities</a>
+      </h2>
+<p id="section-3-1">Endpoints negotiate support for these optimizations when establishing a CONNECT-IP tunnel by using a <code>connect-ip-optimizations</code> HTTP header field, whose value is a Structured Field Dictionary as defined in <span><a href="https://rfc-editor.org/rfc/rfc8941#section-3.2" class="relref">Section 3.2</a> of [<a href="#STRUCTURED-HTTP" class="cite xref">STRUCTURED-HTTP</a>]</span>.<a href="#section-3-1" class="pilcrow">¶</a></p>
+<div id="header-definition">
+<section id="section-3.1">
+        <h3 id="name-header-definition">
+<a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-header-definition" class="section-name selfRef">Header Definition</a>
+        </h3>
+<span id="name-connect-ip-optimizations-he"></span><div id="fig-connect-ip-optimizations-header">
+<figure id="figure-1">
+          <div class="alignLeft art-text artwork" id="section-3.1-1.1">
+<pre>
+connect-ip-optimizations = sf-dictionary
+</pre>
+</div>
+<figcaption><a href="#figure-1" class="selfRef">Figure 1</a>:
+<a href="#name-connect-ip-optimizations-he" class="selfRef">Connect-ip-optimizations header field</a>
+          </figcaption></figure>
+</div>
+<p id="section-3.1-2">This document defines the following optional dictionary keys:<a href="#section-3.1-2" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-3.1-3">
+          <dt id="section-3.1-3.1">
+<code>templates</code> (sf-interger):</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-3.2">
+            <p id="section-3.1-3.2.1">Indicates support for reusable templates and specifies the maximum number of templates that the sender is willing to maintain for templates received from the peer. A positive integer value indicates full support for reusable templates, and the value represents an upper bound on the number of concurrently active templates that can be created by the peer. A value of 0 indicates that the sender supports reusable templates only for its own transmissions but does not accept templates created by the peer. If this member is omitted, reusable templates are not supported in either direction.<a href="#section-3.1-3.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-3.1-3.3">
+<code>checksum</code> (sf-boolean):</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-3.4">
+            <p id="section-3.1-3.4.1">Indicates support for checksum offload semantics. A value of <code>?1</code> means that checksum offload is supported in both directions. A value of <code>?0</code> means that checksum offload may be used for packets sent by this endpoint but not for packets received from the peer. If this member is omitted, checksum offload is not supported in either direction.<a href="#section-3.1-3.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<p id="section-3.1-4">Endpoints <span class="bcp14">MUST</span> ignore unknown dictionary members. The absence of a member implies that the corresponding capability is not supported by the sender.<a href="#section-3.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="negotiation-behavior">
+<section id="section-3.2">
+        <h3 id="name-negotiation-behavior">
+<a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-negotiation-behavior" class="section-name selfRef">Negotiation Behavior</a>
+        </h3>
+<p id="section-3.2-1">If both peers indicate support for templates (that is, <code>templates</code> member is present and non-zero in both directions), either endpoint <span class="bcp14">MAY</span> create and delete Context Identifiers and their templates using capsules as described in <a href="#capsules" class="auto internal xref">Section 4</a>.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
+<p id="section-3.2-2">If both peers indicate support for checksum offload (that is, <code>checksum=?1</code> in both directions), either endpoint <span class="bcp14">MAY</span> install checksum offload parameters for specific Context Identifiers using capsules as described in <a href="#optimization-create" class="auto internal xref">Section 4.2</a>.<a href="#section-3.2-2" class="pilcrow">¶</a></p>
+<p id="section-3.2-3">Peers of endpoints that advertise support in only one direction (for example, <code>checksum=?0</code> or <code>templates=0</code>) <span class="bcp14">MUST NOT</span> send capsules that would require those endpoints to maintain state for the corresponding capability.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
+<p id="section-3.2-4">Capabilities that were not successfully negotiated <span class="bcp14">MUST NOT</span> be used within the tunnel.<a href="#section-3.2-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="example">
+<section id="section-3.3">
+        <h3 id="name-example">
+<a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-example" class="section-name selfRef">Example</a>
+        </h3>
+<p id="section-3.3-1">HTTP/3 sample request (client to proxy):<a href="#section-3.3-1" class="pilcrow">¶</a></p>
+<span id="name-connect-ip-with-connect-ip-"></span><div id="fig-connect-ip-optimizations-request-example">
+<figure id="figure-2">
+          <div class="alignLeft art-text artwork" id="section-3.3-2.1">
+<pre>
+:method = CONNECT
+:protocol = connect-ip
+:scheme = https
+:path = /.well-known/masque/ip/*/*/
+:authority = proxy.example.net
+capsule-protocol = ?1
+connect-ip-optimizations = templates=20000, checksum=?1
+</pre>
+</div>
+<figcaption><a href="#figure-2" class="selfRef">Figure 2</a>:
+<a href="#name-connect-ip-with-connect-ip-" class="selfRef">CONNECT-IP with connect-ip-optimizations request example</a>
+          </figcaption></figure>
+</div>
+<p id="section-3.3-3">HTTP/3 sample response (proxy to client):<a href="#section-3.3-3" class="pilcrow">¶</a></p>
+<span id="name-connect-ip-with-connect-ip-o"></span><div id="fig-connect-ip-optimizations-response-example">
+<figure id="figure-3">
+          <div class="alignLeft art-text artwork" id="section-3.3-4.1">
+<pre>
+:status = 200
+capsule-protocol = ?1
+connect-ip-optimizations = templates=65535, checksum=?0
+</pre>
+</div>
+<figcaption><a href="#figure-3" class="selfRef">Figure 3</a>:
+<a href="#name-connect-ip-with-connect-ip-o" class="selfRef">CONNECT-IP with connect-ip-optimizations response example</a>
+          </figcaption></figure>
+</div>
+<p id="section-3.3-5">In this example, both peers support reusable templates, and checksum offload is supported only for packets sent from the proxy to the client.<a href="#section-3.3-5" class="pilcrow">¶</a></p>
+<p id="section-3.3-6">After this exchange, both endpoints may define Context Identifiers and associated templates and/or checksum parameters using capsules on the reliable control stream.<a href="#section-3.3-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="capsules">
+<section id="section-4">
+      <h2 id="name-optimization-capsules">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-optimization-capsules" class="section-name selfRef">Optimization capsules</a>
+      </h2>
+<p id="section-4-1">This specification defines two capsule types:<a href="#section-4-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-4-2">
+        <dt id="section-4-2.1">OPTIMIZATION_CREATE (capsule type 0x1a768469):</dt>
+        <dd style="margin-left: 1.5em" id="section-4-2.2">
+          <p id="section-4-2.2.1">Creates an immutable optimization context bound to a Context ID.<a href="#section-4-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-4-2.3">OPTIMIZATION_DELETE (capsule type 0x1a76846a):</dt>
+        <dd style="margin-left: 1.5em" id="section-4-2.4">
+          <p id="section-4-2.4.1">Retires a CID.<a href="#section-4-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+<p id="section-4-3">All capsules are sent on the reliable control stream of the CONNECT-IP tunnel.<a href="#section-4-3" class="pilcrow">¶</a></p>
+<div id="context-id-allocation">
+<section id="section-4.1">
+        <h3 id="name-context-id-allocation">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-context-id-allocation" class="section-name selfRef">Context ID allocation</a>
+        </h3>
+<p id="section-4.1-1">The Context ID carried in these capsules is encoded as a QUIC variable-length integer defined in <span><a href="https://rfc-editor.org/rfc/rfc9000#section-16" class="relref">Section 16</a> of [<a href="#QUIC" class="cite xref">QUIC</a>]</span>. Even-numbered CIDs are allocated by the client, and odd-numbered CIDs are allocated by the proxy, consistent with <span><a href="https://rfc-editor.org/rfc/rfc9298#section-4" class="relref">Section 4</a> of [<a href="#CONNECT-UDP" class="cite xref">CONNECT-UDP</a>]</span>. CID 0 is reserved for unoptimized raw packets and <span class="bcp14">MUST NOT</span> appear in these capsules.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="optimization-create">
+<section id="section-4.2">
+        <h3 id="name-optimization_create-capsule">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-optimization_create-capsule" class="section-name selfRef">OPTIMIZATION_CREATE capsule</a>
+        </h3>
+<p id="section-4.2-1">OPTIMIZATION_CREATE capsule is used to create a new, immutable optimization context for the indicated CID.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<span id="name-optimization_create-capsule-"></span><div id="fig-optimization-create-capsule">
+<figure id="figure-4">
+          <div class="alignLeft art-text artwork" id="section-4.2-2.1">
+<pre>
+OPTIMIZATION_CREATE Capsule {
+  Type (i) = 0x1a768469,
+  Length (i),
+  Context ID (i),
+  Static Segments Length (i),
+  Static Segment (..) ...,
+  Checksum Field Offset (i)?,
+  Checksum Start Offset (i)?,
+}
+</pre>
+</div>
+<figcaption><a href="#figure-4" class="selfRef">Figure 4</a>:
+<a href="#name-optimization_create-capsule-" class="selfRef">OPTIMIZATION_CREATE Capsule Format</a>
+          </figcaption></figure>
+</div>
+<p id="section-4.2-3">OPTIMIZATION_CREATE capsule contains the following fields:<a href="#section-4.2-3" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-4.2-4">
+          <dt id="section-4.2-4.1">Context ID:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.2-4.2">
+            <p id="section-4.2-4.2.1">Context Identifier, encoded as a variable-length integer, defined by this capsule.<a href="#section-4.2-4.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.2-4.3">Static Segments Length:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.2-4.4">
+            <p id="section-4.2-4.4.1">Aggregate length in bytes of all subsequent Static Segments. A value of 0 indicates that no template is used (that is, the payload of datagrams for the given Context ID contains a full reconstructed packet, modulo checksum finishing if configured).<a href="#section-4.2-4.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.2-4.5">Checksum Field Offset:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.2-4.6">
+            <p id="section-4.2-4.6.1">An optional field, encoded as a variable-length integer, containing byte offset of the 16-bit Internet checksum field within the reconstructed packet. This field is omitted if checksum offload is not used.<a href="#section-4.2-4.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.2-4.7">Checksum Start Offset:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.2-4.8">
+            <p id="section-4.2-4.8.1">An optional field, encoded as a variable-length integer, containing byte offset where checksum coverage begins. Coverage runs from this offset to the end of the reconstructed packet. Not included in the capsule if checksum offloading is not used.<a href="#section-4.2-4.8.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<p id="section-4.2-5">The OPTIMIZATION_CREATE capsule contains a sequence of zero or more Static Segments.<a href="#section-4.2-5" class="pilcrow">¶</a></p>
+<span id="name-static-segment-format"></span><div id="fig-static-segment">
+<figure id="figure-5">
+          <div class="alignLeft art-text artwork" id="section-4.2-6.1">
+<pre>
+Static Segment {
+  Segment Offset (i),
+  Segment Length (i),
+  Segment Payload (..),
+}
+</pre>
+</div>
+<figcaption><a href="#figure-5" class="selfRef">Figure 5</a>:
+<a href="#name-static-segment-format" class="selfRef">Static Segment Format</a>
+          </figcaption></figure>
+</div>
+<p id="section-4.2-7">Each Static Segment contains following fields:<a href="#section-4.2-7" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-4.2-8">
+          <dt id="section-4.2-8.1">Segment Offset:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.2-8.2">
+            <p id="section-4.2-8.2.1">Byte offset from the start of the reconstructed packet, encoded as a variable-length integer<a href="#section-4.2-8.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.2-8.3">Segment Length:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.2-8.4">
+            <p id="section-4.2-8.4.1">Number of bytes in this static segment, encoded as a variable-length integer<a href="#section-4.2-8.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.2-8.5">Segment Payload:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.2-8.6">
+            <p id="section-4.2-8.6.1">the static bytes to insert at the Segment Offset<a href="#section-4.2-8.6.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<div id="parsing-and-validation">
+<section id="section-4.2.1">
+          <h4 id="name-parsing-and-validation">
+<a href="#section-4.2.1" class="section-number selfRef">4.2.1. </a><a href="#name-parsing-and-validation" class="section-name selfRef">Parsing and validation</a>
+          </h4>
+<p id="section-4.2.1-1">The receiver parses an OPTIMIZATION_CREATE capsule by reading, in order: the Context ID, the Static Segments Length, zero or more static segments whose encodings consume exactly Static Segments Length bytes, and then two checksum offsets if they are present.<a href="#section-4.2.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.2.1-2">The Context ID <span class="bcp14">MUST</span> be non-zero, even-numbered when created by the client, and odd-numbered when created by the proxy. The Context ID <span class="bcp14">MUST NOT</span> have been used previously. Static Segments Length is the total size, in bytes, of the static segments section including each Segmenet Offset, Segment Length, and Segment Payload.<a href="#section-4.2.1-2" class="pilcrow">¶</a></p>
+<p id="section-4.2.1-3">Each Static Segment consists of a Segment Offset, a Segment Length, and exactly Segment Length octets of Segment Payload. Static segments <span class="bcp14">MUST</span> appear in strictly increasing Segment Offset order and <span class="bcp14">MUST NOT</span> overlap.<a href="#section-4.2.1-3" class="pilcrow">¶</a></p>
+<p id="section-4.2.1-4">After Static Segments Length bytes have been consumed, the capsule either ends immediately or contains exactly two additional fields: Checksum Field Offset followed by Checksum Start Offset. If only one variable-length integer is present, or if any bytes remain after the two length integers, the capsule is malformed.<a href="#section-4.2.1-4" class="pilcrow">¶</a></p>
+<p id="section-4.2.1-5">A receiver that did not negotiate acceptance of checksum offload in its direction as defined in <a href="#negotiation" class="auto internal xref">Section 3</a> <span class="bcp14">MUST</span> treat an OPTIMIZATION_CREATE capsule that includes checksum offsets as an error and <span class="bcp14">MUST</span> follow the error-handling procedure in <span><a href="https://rfc-editor.org/rfc/rfc9297#section-3.3" class="relref">Section 3.3</a> of [<a href="#HTTP-DATAGRAMS" class="cite xref">HTTP-DATAGRAMS</a>]</span>. A receiver that has already accepted the maximum number of templates it advertised via the templates member of <code>connect-ip-optimizations</code> <span class="bcp14">MUST</span> treat any additional OPTIMIZATION_CREATE capsule containing a template (that is, with Static Segments Length &gt; 0) as an error and <span class="bcp14">MUST</span> follow the same error-handling procedure.<a href="#section-4.2.1-5" class="pilcrow">¶</a></p>
+<p id="section-4.2.1-6">If any of the capsule fields are malformed upon reception, the receiver of the capsule <span class="bcp14">MUST</span> follow the error-handling procedure defined in <span><a href="https://rfc-editor.org/rfc/rfc9297#section-3.3" class="relref">Section 3.3</a> of [<a href="#HTTP-DATAGRAMS" class="cite xref">HTTP-DATAGRAMS</a>]</span>.<a href="#section-4.2.1-6" class="pilcrow">¶</a></p>
+<p id="section-4.2.1-7">Per-packet validation uses the reconstruction procedure described in <a href="#reconstruction" class="auto internal xref">Section 5.2</a>.<a href="#section-4.2.1-7" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="optimizationdelete-capsule">
+<section id="section-4.3">
+        <h3 id="name-optimization_delete-capsule">
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-optimization_delete-capsule" class="section-name selfRef">OPTIMIZATION_DELETE capsule</a>
+        </h3>
+<p id="section-4.3-1">OPTIMIZATION_DELETE capsule is used to indicate that a Context ID previously defined by OPTIMIZATION_CREATE capsule will no longer be used.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<span id="name-optimization_delete-capsule-"></span><div id="fig-optimization-delete-capsule">
+<figure id="figure-6">
+          <div class="alignLeft art-text artwork" id="section-4.3-2.1">
+<pre>
+OPTIMIZATION_DELETE Capsule {
+  Type (i) = 0x1a76846a,
+  Length (i),
+  Context ID (i),
+}
+</pre>
+</div>
+<figcaption><a href="#figure-6" class="selfRef">Figure 6</a>:
+<a href="#name-optimization_delete-capsule-" class="selfRef">OPTIMIZATION_DELETE Capsule Format</a>
+          </figcaption></figure>
+</div>
+<p id="section-4.3-3">After sending an OPTIMIZATION_DELETE Capsule, the sender <span class="bcp14">MUST NOT</span> use the Context ID. Upon receipt, the peer retires the indicated context and releases any negotiated template budget consumed by that context if, and only if, the retired context included a template (that is, its OPTIMIZATION_CREATE had a non-zero Static Segments Length). Retiring a context that had no template (for example, checksum-only) does not affect the template budget.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
+<p id="section-4.3-4">If an OPTIMIZATION_DELETE capsule is received for a Context ID that was not previously and correctly defined by an OPTIMIZATION_CREATE capsule from the peer, the receiver <span class="bcp14">MUST</span> follow the error-handling procedure defined in <span><a href="https://rfc-editor.org/rfc/rfc9297#section-3.3" class="relref">Section 3.3</a> of [<a href="#HTTP-DATAGRAMS" class="cite xref">HTTP-DATAGRAMS</a>]</span>.<a href="#section-4.3-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="optimized-datagram-operation">
+<section id="section-5">
+      <h2 id="name-optimized-datagram-operatio">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-optimized-datagram-operatio" class="section-name selfRef">Optimized Datagram Operation</a>
+      </h2>
+<p id="section-5-1">This section defines how endpoints construct and consume datagrams once a Context ID has been created with OPTIMIZATION_CREATE capsule.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<div id="sender-behavior">
+<section id="section-5.1">
+        <h3 id="name-sender-behavior">
+<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-sender-behavior" class="section-name selfRef">Sender behavior</a>
+        </h3>
+<p id="section-5.1-1">For each packet sent under a Context ID, the sender constructs the datagram payload according to the context's template. If the context has no template (that is, Static Segments Length is 0), the payload <span class="bcp14">MUST</span> be a complete reconstructed packet. If the context has a template, the payload <span class="bcp14">MUST</span> be the concatenation of all variable byte ranges, taken in strictly increasing offset order, corresponding to the gaps not covered by static segments starting at offset 0.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.1-2">When checksum offload is configured (that is, the context includes Checksum Field Offset and Checksum Start Offset), the sender <span class="bcp14">MUST</span> set the checksum field in the reconstructed packet image to the 16-bit one’s-complement sum of the appropriate pseudo-header before transmission. The two bytes at Checksum Field Offset in the reconstructed image therefore <span class="bcp14">MUST</span> contain this pseudo-header sum; these bytes originates from static bytes in the template as well as from variable bytes in the payload. The final reconstructed image <span class="bcp14">MUST</span> contain the correct preseeding value.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
+<p id="section-5.1-3">A sender uses Context ID 0 for any one-off packet that does not fit an existing context (for example, a transient change in header layout).<a href="#section-5.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="reconstruction">
+<section id="section-5.2">
+        <h3 id="name-receiver-behavior">
+<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-receiver-behavior" class="section-name selfRef">Receiver behavior</a>
+        </h3>
+<p id="section-5.2-1">A datagram that arrives with a non-zero Context ID that has not been previously and correctly defined by an OPTIMIZATION_CREATE capsule from the peer <span class="bcp14">MUST</span> be dropped.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+<p id="section-5.2-2">If the CID has no template (that is, Static Segments Length is 0), the datagram payload is the complete reconstructed packet. If the CID has a template, the receiver reconstructs the packet from offset 0 upward by writing static bytes at their declared offsets and filling all remaining byte positions with bytes consumed from the datagram payload in strictly increasing offset order. Reconstruction continues until all payload bytes have been consumed. If the payload is exhausted before the offset of the last static segment have been filled, the packet <span class="bcp14">MUST</span> be dropped.<a href="#section-5.2-2" class="pilcrow">¶</a></p>
+<p id="section-5.2-3">When Checksum Field Offset and Checksum Start Offset are present for the CID, the receiver finishes the Internet checksum as follows: it computes the checksum over the byte range starting at Checksum Start Offset and ending at the reconstructed packet length while treating the checksum field as zero during the sum; it then adds (folds) the 16-bit value currently at Checksum Field Offset, performs end-around carry, and writes the final one's-complement result back at Checksum Field Offset. If either checksum offset is greater than or equal to the reconstructed packet length for this packet, the packet <span class="bcp14">MUST</span> be dropped.<a href="#section-5.2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 <div id="security-considerations">
-<section id="section-3">
+<section id="section-6">
       <h2 id="name-security-considerations">
-<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
       </h2>
-<p id="section-3-1">TODO Security<a href="#section-3-1" class="pilcrow">¶</a></p>
+<p id="section-6-1">This specification changes how CONNECT-IP datagrams are constructed but does not weaken transport-layer integrity or confidentiality protections provided by the underlying HTTP mapping. All Capsules travel on the reliable control stream and inherit those protections.<a href="#section-6-1" class="pilcrow">¶</a></p>
+<p id="section-6-2">Context state can be abused for resource exhaustion. Endpoints enforce negotiated limits from <code>connect-ip-optimizations</code>; they <span class="bcp14">MUST</span> reject creations that exceed the declared template budget and must release budget when a context is retired with OPTIMIZATION_DELETE. Implementations <span class="bcp14">SHOULD</span> bound the number of static segments, validate lengths before allocation and cap per-context memory.<a href="#section-6-2" class="pilcrow">¶</a></p>
+<p id="section-6-3">Negotiation and Capsule handling are directional and immutable to reduce desynchronization risk. Even/odd Context ID allocation prevents collisions between endpoints; CID 0 is reserved and must not appear in Capsules. Unknown CIDs must be dropped. Reusing a CID within the same connection after deletion is not permitted; endpoints <span class="bcp14">MUST</span> allocate a fresh CID to change behavior.<a href="#section-6-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="iana-considerations">
-<section id="section-4">
+<section id="section-7">
       <h2 id="name-iana-considerations">
-<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
       </h2>
-<p id="section-4-1">This document has no IANA actions.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<div id="http-capsule-types-registration">
+<section id="section-7.1">
+        <h3 id="name-http-capsule-types-registra">
+<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-http-capsule-types-registra" class="section-name selfRef">HTTP Capsule Types Registration</a>
+        </h3>
+<p id="section-7.1-1">This specification registers the following values in the "HTTP Capsule Types" registry:<a href="#section-7.1-1" class="pilcrow">¶</a></p>
+<p id="section-7.1-2">| Value | Capsule Type
++ --- + --- +
+| 0x1a768460 | OPTIMIZATION_CREATE |
+| 0x1a76846a | OPTIMIZATION_DELETE |<a href="#section-7.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="sec-normative-references">
-<section id="section-5">
-      <h2 id="name-normative-references">
-<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+<div id="http-field-name-registration">
+<section id="section-7.2">
+        <h3 id="name-http-field-name-registratio">
+<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-http-field-name-registratio" class="section-name selfRef">HTTP Field Name Registration</a>
+        </h3>
+<p id="section-7.2-1">This specification registers the following value in the "HTTP Field Name" registry:<a href="#section-7.2-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-7.2-2.1">
+            <p id="section-7.2-2.1.1">Field Name: connect-ip-optimizations<a href="#section-7.2-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-7.2-2.2">
+            <p id="section-7.2-2.2.1">Status: provisional (permanent if approved)<a href="#section-7.2-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-7.2-2.3">
+            <p id="section-7.2-2.3.1">Structured Type: Dictionary<a href="#section-7.2-2.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-7.2-2.4">
+            <p id="section-7.2-2.4.1">Reference: This document<a href="#section-7.2-2.4.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+</div>
+</section>
+</div>
+<div id="sec-combined-references">
+<section id="section-8">
+      <h2 id="name-references">
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-references" class="section-name selfRef">References</a>
       </h2>
+<div id="sec-normative-references">
+<section id="section-8.1">
+        <h3 id="name-normative-references">
+<a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+        </h3>
 <dl class="references">
+<dt id="CONNECT-IP">[CONNECT-IP]</dt>
+        <dd>
+<span class="refAuthor">Pauly, T., Ed.</span>, <span class="refAuthor">Schinazi, D.</span>, <span class="refAuthor">Chernyakhovsky, A.</span>, <span class="refAuthor">Kühlewind, M.</span>, and <span class="refAuthor">M. Westerlund</span>, <span class="refTitle">"Proxying IP in HTTP"</span>, <span class="seriesInfo">RFC 9484</span>, <span class="seriesInfo">DOI 10.17487/RFC9484</span>, <time datetime="2023-10" class="refDate">October 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9484">https://www.rfc-editor.org/rfc/rfc9484</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="CONNECT-UDP">[CONNECT-UDP]</dt>
+        <dd>
+<span class="refAuthor">Schinazi, D.</span>, <span class="refTitle">"Proxying UDP in HTTP"</span>, <span class="seriesInfo">RFC 9298</span>, <span class="seriesInfo">DOI 10.17487/RFC9298</span>, <time datetime="2022-08" class="refDate">August 2022</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9298">https://www.rfc-editor.org/rfc/rfc9298</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="HTTP-DATAGRAMS">[HTTP-DATAGRAMS]</dt>
+        <dd>
+<span class="refAuthor">Schinazi, D.</span> and <span class="refAuthor">L. Pardue</span>, <span class="refTitle">"HTTP Datagrams and the Capsule Protocol"</span>, <span class="seriesInfo">RFC 9297</span>, <span class="seriesInfo">DOI 10.17487/RFC9297</span>, <time datetime="2022-08" class="refDate">August 2022</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9297">https://www.rfc-editor.org/rfc/rfc9297</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="INCREMENTAL-CHECKSUM">[INCREMENTAL-CHECKSUM]</dt>
+        <dd>
+<span class="refAuthor">Rijsinghani, A., Ed.</span>, <span class="refTitle">"Computation of the Internet Checksum via Incremental Update"</span>, <span class="seriesInfo">RFC 1624</span>, <span class="seriesInfo">DOI 10.17487/RFC1624</span>, <time datetime="1994-05" class="refDate">May 1994</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc1624">https://www.rfc-editor.org/rfc/rfc1624</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="RFC2119">[RFC2119]</dt>
-      <dd>
+        <dd>
 <span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC8174">[RFC8174]</dt>
-    <dd>
+        <dd>
 <span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="STRUCTURED-HTTP">[STRUCTURED-HTTP]</dt>
+      <dd>
+<span class="refAuthor">Nottingham, M.</span> and <span class="refAuthor">P. Kamp</span>, <span class="refTitle">"Structured Field Values for HTTP"</span>, <span class="seriesInfo">RFC 8941</span>, <span class="seriesInfo">DOI 10.17487/RFC8941</span>, <time datetime="2021-02" class="refDate">February 2021</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8941">https://www.rfc-editor.org/rfc/rfc8941</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 </dl>
+</section>
+</div>
+<div id="sec-informative-references">
+<section id="section-8.2">
+        <h3 id="name-informative-references">
+<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+        </h3>
+<dl class="references">
+<dt id="QUIC">[QUIC]</dt>
+      <dd>
+<span class="refAuthor">Iyengar, J., Ed.</span> and <span class="refAuthor">M. Thomson, Ed.</span>, <span class="refTitle">"QUIC: A UDP-Based Multiplexed and Secure Transport"</span>, <span class="seriesInfo">RFC 9000</span>, <span class="seriesInfo">DOI 10.17487/RFC9000</span>, <time datetime="2021-05" class="refDate">May 2021</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9000">https://www.rfc-editor.org/rfc/rfc9000</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
 </section>
 </div>
 <div id="acknowledgments">
