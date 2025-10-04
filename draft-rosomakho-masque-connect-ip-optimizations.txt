@@ -2,14 +2,14 @@
 
 
 
-WG Working Group                                              Y. N. Here
-Internet-Draft                                    Your Organization Here
-Intended status: Informational                            4 October 2025
+Multiplexed Application Substrate over QUIC Encryption      Y. Rosomakho
+Internet-Draft                                                   Zscaler
+Intended status: Standards Track                          4 October 2025
 Expires: 7 April 2026
 
 
-                           TODO - Your title
-                  draft-todo-yourname-protocol-latest
+         Reusable templates and checksum offload for CONNECT-IP
+         draft-rosomakho-masque-connect-ip-optimizations-latest
 
 Abstract
 
@@ -20,16 +20,19 @@ About This Document
    This note is to be removed before publishing as an RFC.
 
    The latest revision of this draft can be found at
-   https://example.com/LATEST.  Status information for this document may
-   be found at https://datatracker.ietf.org/doc/draft-todo-yourname-
-   protocol/.
+   https://yaroslavros.github.io/connect-ip-optimizations/draft-
+   rosomakho-masque-connect-ip-optimizations.html.  Status information
+   for this document may be found at https://datatracker.ietf.org/doc/
+   draft-rosomakho-masque-connect-ip-optimizations/.
 
-   Discussion of this document takes place on the WG Working Group
-   mailing list (mailto:WG@example.com), which is archived at
-   https://example.com/WG.
+   Discussion of this document takes place on the Multiplexed
+   Application Substrate over QUIC Encryption Working Group mailing list
+   (mailto:masque@ietf.org), which is archived at
+   https://mailarchive.ietf.org/arch/browse/masque/.  Subscribe at
+   https://www.ietf.org/mailman/listinfo/masque/.
 
    Source for this draft and an issue tracker can be found at
-   https://github.com/USER/REPO.
+   https://github.com/yaroslavros/connect-ip-optimizations.
 
 Status of This Memo
 
@@ -109,6 +112,6 @@ Acknowledgments
 
 Author's Address
 
-   Your Name Here
-   Your Organization Here
-   Email: your.email@example.com
+   Yaroslav Rosomakho
+   Zscaler
+   Email: yrosomakho@zscaler.com
