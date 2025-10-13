@@ -4,8 +4,8 @@
 
 Multiplexed Application Substrate over QUIC Encryption      Y. Rosomakho
 Internet-Draft                                                   Zscaler
-Intended status: Standards Track                          4 October 2025
-Expires: 7 April 2026
+Intended status: Standards Track                         13 October 2025
+Expires: 16 April 2026
 
 
          Reusable templates and checksum offload for CONNECT-IP
@@ -62,7 +62,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 7 April 2026.
+   This Internet-Draft will expire on 16 April 2026.
 
 Copyright Notice
 
@@ -88,9 +88,9 @@ Table of Contents
      3.3.   Example
    4.  Optimization capsules
      4.1.  Context ID allocation
-     4.2.  OPTIMIZATION_CREATE capsule
+     4.2.  CONNECT_IP_OPTIMIZATION_CREATE capsule
        4.2.1.  Parsing and validation
-     4.3.  OPTIMIZATION_DELETE capsule
+     4.3.  CONNECT_IP_OPTIMIZATION_DELETE capsule
    5.  Optimized Datagram Operation
      5.1.  Sender behavior
      5.2.  Receiver behavior
@@ -269,10 +269,11 @@ Table of Contents
 
    This specification defines two capsule types:
 
-   OPTIMIZATION_CREATE (capsule type 0x1a768469):  Creates an immutable
-      optimization context bound to a Context ID.
+   CONNECT_IP_OPTIMIZATION_CREATE (capsule type 0x1a768469):  Creates an
+      immutable optimization context bound to a Context ID.
 
-   OPTIMIZATION_DELETE (capsule type 0x1a76846a):  Retires a CID.
+   CONNECT_IP_OPTIMIZATION_DELETE (capsule type 0x1a76846a):  Retires a
+      CID.
 
    All capsules are sent on the reliable control stream of the CONNECT-
    IP tunnel.
@@ -286,12 +287,12 @@ Table of Contents
    CID 0 is reserved for unoptimized raw packets and MUST NOT appear in
    these capsules.
 
-4.2.  OPTIMIZATION_CREATE capsule
+4.2.  CONNECT_IP_OPTIMIZATION_CREATE capsule
 
-   OPTIMIZATION_CREATE capsule is used to create a new, immutable
-   optimization context for the indicated CID.
+   CONNECT_IP_OPTIMIZATION_CREATE capsule is used to create a new,
+   immutable optimization context for the indicated CID.
 
-   OPTIMIZATION_CREATE Capsule {
+   CONNECT_IP_OPTIMIZATION_CREATE Capsule {
      Type (i) = 0x1a768469,
      Length (i),
      Context ID (i),
@@ -301,9 +302,9 @@ Table of Contents
      Checksum Start Offset (i)?,
    }
 
-                Figure 4: OPTIMIZATION_CREATE Capsule Format
+          Figure 4: CONNECT_IP_OPTIMIZATION_CREATE Capsule Format
 
-   OPTIMIZATION_CREATE capsule contains the following fields:
+   CONNECT_IP_OPTIMIZATION_CREATE capsule contains the following fields:
 
    Context ID:  Context Identifier, encoded as a variable-length
       integer, defined by this capsule.
@@ -325,8 +326,8 @@ Table of Contents
       reconstructed packet.  Not included in the capsule if checksum
       offloading is not used.
 
-   The OPTIMIZATION_CREATE capsule contains a sequence of zero or more
-   Static Segments.
+   The CONNECT_IP_OPTIMIZATION_CREATE capsule contains a sequence of
+   zero or more Static Segments.
 
    Static Segment {
      Segment Offset (i),
@@ -348,10 +349,11 @@ Table of Contents
 
 4.2.1.  Parsing and validation
 
-   The receiver parses an OPTIMIZATION_CREATE capsule by reading, in
-   order: the Context ID, the Static Segments Length, zero or more
-   static segments whose encodings consume exactly Static Segments
-   Length bytes, and then two checksum offsets if they are present.
+   The receiver parses an CONNECT_IP_OPTIMIZATION_CREATE capsule by
+   reading, in order: the Context ID, the Static Segments Length, zero
+   or more static segments whose encodings consume exactly Static
+   Segments Length bytes, and then two checksum offsets if they are
+   present.
 
    The Context ID MUST be non-zero, even-numbered when created by the
    client, and odd-numbered when created by the proxy.  The Context ID
@@ -372,14 +374,14 @@ Table of Contents
 
    A receiver that did not negotiate acceptance of checksum offload in
    its direction as defined in Section 3 MUST treat an
-   OPTIMIZATION_CREATE capsule that includes checksum offsets as an
-   error and MUST follow the error-handling procedure in Section 3.3 of
-   [HTTP-DATAGRAMS].  A receiver that has already accepted the maximum
-   number of templates it advertised via the templates member of
-   connect-ip-optimizations MUST treat any additional
-   OPTIMIZATION_CREATE capsule containing a template (that is, with
-   Static Segments Length > 0) as an error and MUST follow the same
-   error-handling procedure.
+   CONNECT_IP_OPTIMIZATION_CREATE capsule that includes checksum offsets
+   as an error and MUST follow the error-handling procedure in
+   Section 3.3 of [HTTP-DATAGRAMS].  A receiver that has already
+   accepted the maximum number of templates it advertised via the
+   templates member of connect-ip-optimizations MUST treat any
+   additional CONNECT_IP_OPTIMIZATION_CREATE capsule containing a
+   template (that is, with Static Segments Length > 0) as an error and
+   MUST follow the same error-handling procedure.
 
    If any of the capsule fields are malformed upon reception, the
    receiver of the capsule MUST follow the error-handling procedure
@@ -388,37 +390,40 @@ Table of Contents
    Per-packet validation uses the reconstruction procedure described in
    Section 5.2.
 
-4.3.  OPTIMIZATION_DELETE capsule
+4.3.  CONNECT_IP_OPTIMIZATION_DELETE capsule
 
-   OPTIMIZATION_DELETE capsule is used to indicate that a Context ID
-   previously defined by OPTIMIZATION_CREATE capsule will no longer be
-   used.
+   CONNECT_IP_OPTIMIZATION_DELETE capsule is used to indicate that a
+   Context ID previously defined by CONNECT_IP_OPTIMIZATION_CREATE
+   capsule will no longer be used.
 
-   OPTIMIZATION_DELETE Capsule {
+   CONNECT_IP_OPTIMIZATION_DELETE Capsule {
      Type (i) = 0x1a76846a,
      Length (i),
      Context ID (i),
    }
 
-                Figure 6: OPTIMIZATION_DELETE Capsule Format
+          Figure 6: CONNECT_IP_OPTIMIZATION_DELETE Capsule Format
 
-   After sending an OPTIMIZATION_DELETE Capsule, the sender MUST NOT use
-   the Context ID.  Upon receipt, the peer retires the indicated context
-   and releases any negotiated template budget consumed by that context
-   if, and only if, the retired context included a template (that is,
-   its OPTIMIZATION_CREATE had a non-zero Static Segments Length).
-   Retiring a context that had no template (for example, checksum-only)
-   does not affect the template budget.
+   After sending an CONNECT_IP_OPTIMIZATION_DELETE Capsule, the sender
+   MUST NOT use the Context ID.  Upon receipt, the peer retires the
+   indicated context and releases any negotiated template budget
+   consumed by that context if, and only if, the retired context
+   included a template (that is, its CONNECT_IP_OPTIMIZATION_CREATE had
+   a non-zero Static Segments Length).  Retiring a context that had no
+   template (for example, checksum-only) does not affect the template
+   budget.
 
-   If an OPTIMIZATION_DELETE capsule is received for a Context ID that
-   was not previously and correctly defined by an OPTIMIZATION_CREATE
-   capsule from the peer, the receiver MUST follow the error-handling
-   procedure defined in Section 3.3 of [HTTP-DATAGRAMS].
+   If an CONNECT_IP_OPTIMIZATION_DELETE capsule is received for a
+   Context ID that was not previously and correctly defined by an
+   CONNECT_IP_OPTIMIZATION_CREATE capsule from the peer, the receiver
+   MUST follow the error-handling procedure defined in Section 3.3 of
+   [HTTP-DATAGRAMS].
 
 5.  Optimized Datagram Operation
 
    This section defines how endpoints construct and consume datagrams
-   once a Context ID has been created with OPTIMIZATION_CREATE capsule.
+   once a Context ID has been created with
+   CONNECT_IP_OPTIMIZATION_CREATE capsule.
 
 5.1.  Sender behavior
 
@@ -447,8 +452,8 @@ Table of Contents
 5.2.  Receiver behavior
 
    A datagram that arrives with a non-zero Context ID that has not been
-   previously and correctly defined by an OPTIMIZATION_CREATE capsule
-   from the peer MUST be dropped.
+   previously and correctly defined by an CONNECT_IP_OPTIMIZATION_CREATE
+   capsule from the peer MUST be dropped.
 
    If the CID has no template (that is, Static Segments Length is 0),
    the datagram payload is the complete reconstructed packet.  If the
@@ -481,9 +486,10 @@ Table of Contents
    Context state can be abused for resource exhaustion.  Endpoints
    enforce negotiated limits from connect-ip-optimizations; they MUST
    reject creations that exceed the declared template budget and must
-   release budget when a context is retired with OPTIMIZATION_DELETE.
-   Implementations SHOULD bound the number of static segments, validate
-   lengths before allocation and cap per-context memory.
+   release budget when a context is retired with
+   CONNECT_IP_OPTIMIZATION_DELETE.  Implementations SHOULD bound the
+   number of static segments, validate lengths before allocation and cap
+   per-context memory.
 
    Negotiation and Capsule handling are directional and immutable to
    reduce desynchronization risk.  Even/odd Context ID allocation
@@ -499,8 +505,9 @@ Table of Contents
    This specification registers the following values in the "HTTP
    Capsule Types" registry:
 
-   | Value | Capsule Type + --- + --- + | 0x1a768460 |
-   OPTIMIZATION_CREATE | | 0x1a76846a | OPTIMIZATION_DELETE |
+   | Value | Capsule Type + --- + --- + | 0x1a768469 |
+   CONNECT_IP_OPTIMIZATION_CREATE | | 0x1a76846a |
+   CONNECT_IP_OPTIMIZATION_DELETE |
 
 7.2.  HTTP Field Name Registration
 

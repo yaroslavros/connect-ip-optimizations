@@ -1052,7 +1052,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Rosomakho</td>
-<td class="center">Expires 7 April 2026</td>
+<td class="center">Expires 16 April 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1065,12 +1065,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-rosomakho-masque-connect-ip-optimizations-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-10-04" class="published">4 October 2025</time>
+<time datetime="2025-10-13" class="published">13 October 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-04-07">7 April 2026</time></dd>
+<dd class="expires"><time datetime="2026-04-16">16 April 2026</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1122,7 +1122,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 7 April 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 16 April 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1178,7 +1178,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
                 <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-context-id-allocation" class="internal xref">Context ID allocation</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
-                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-optimization_create-capsule" class="internal xref">OPTIMIZATION_CREATE capsule</a></p>
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-connect_ip_optimization_cre" class="internal xref">CONNECT_IP_OPTIMIZATION_CREATE capsule</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2.2.1">
                     <p id="section-toc.1-1.4.2.2.2.1.1"><a href="#section-4.2.1" class="auto internal xref">4.2.1</a>.  <a href="#name-parsing-and-validation" class="internal xref">Parsing and validation</a></p>
@@ -1186,7 +1186,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
                 </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
-                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-optimization_delete-capsule" class="internal xref">OPTIMIZATION_DELETE capsule</a></p>
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-connect_ip_optimization_del" class="internal xref">CONNECT_IP_OPTIMIZATION_DELETE capsule</a></p>
 </li>
             </ul>
 </li>
@@ -1384,12 +1384,12 @@ connect-ip-optimizations = templates=65535, checksum=?0
       </h2>
 <p id="section-4-1">This specification defines two capsule types:<a href="#section-4-1" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-4-2">
-        <dt id="section-4-2.1">OPTIMIZATION_CREATE (capsule type 0x1a768469):</dt>
+        <dt id="section-4-2.1">CONNECT_IP_OPTIMIZATION_CREATE (capsule type 0x1a768469):</dt>
         <dd style="margin-left: 1.5em" id="section-4-2.2">
           <p id="section-4-2.2.1">Creates an immutable optimization context bound to a Context ID.<a href="#section-4-2.2.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
-<dt id="section-4-2.3">OPTIMIZATION_DELETE (capsule type 0x1a76846a):</dt>
+<dt id="section-4-2.3">CONNECT_IP_OPTIMIZATION_DELETE (capsule type 0x1a76846a):</dt>
         <dd style="margin-left: 1.5em" id="section-4-2.4">
           <p id="section-4-2.4.1">Retires a CID.<a href="#section-4-2.4.1" class="pilcrow">¶</a></p>
 </dd>
@@ -1406,15 +1406,15 @@ connect-ip-optimizations = templates=65535, checksum=?0
 </div>
 <div id="optimization-create">
 <section id="section-4.2">
-        <h3 id="name-optimization_create-capsule">
-<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-optimization_create-capsule" class="section-name selfRef">OPTIMIZATION_CREATE capsule</a>
+        <h3 id="name-connect_ip_optimization_cre">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-connect_ip_optimization_cre" class="section-name selfRef">CONNECT_IP_OPTIMIZATION_CREATE capsule</a>
         </h3>
-<p id="section-4.2-1">OPTIMIZATION_CREATE capsule is used to create a new, immutable optimization context for the indicated CID.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
-<span id="name-optimization_create-capsule-"></span><div id="fig-optimization-create-capsule">
+<p id="section-4.2-1">CONNECT_IP_OPTIMIZATION_CREATE capsule is used to create a new, immutable optimization context for the indicated CID.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<span id="name-connect_ip_optimization_crea"></span><div id="fig-optimization-create-capsule">
 <figure id="figure-4">
           <div class="alignLeft art-text artwork" id="section-4.2-2.1">
 <pre>
-OPTIMIZATION_CREATE Capsule {
+CONNECT_IP_OPTIMIZATION_CREATE Capsule {
   Type (i) = 0x1a768469,
   Length (i),
   Context ID (i),
@@ -1426,10 +1426,10 @@ OPTIMIZATION_CREATE Capsule {
 </pre>
 </div>
 <figcaption><a href="#figure-4" class="selfRef">Figure 4</a>:
-<a href="#name-optimization_create-capsule-" class="selfRef">OPTIMIZATION_CREATE Capsule Format</a>
+<a href="#name-connect_ip_optimization_crea" class="selfRef">CONNECT_IP_OPTIMIZATION_CREATE Capsule Format</a>
           </figcaption></figure>
 </div>
-<p id="section-4.2-3">OPTIMIZATION_CREATE capsule contains the following fields:<a href="#section-4.2-3" class="pilcrow">¶</a></p>
+<p id="section-4.2-3">CONNECT_IP_OPTIMIZATION_CREATE capsule contains the following fields:<a href="#section-4.2-3" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-4.2-4">
           <dt id="section-4.2-4.1">Context ID:</dt>
           <dd style="margin-left: 1.5em" id="section-4.2-4.2">
@@ -1452,7 +1452,7 @@ OPTIMIZATION_CREATE Capsule {
 </dd>
         <dd class="break"></dd>
 </dl>
-<p id="section-4.2-5">The OPTIMIZATION_CREATE capsule contains a sequence of zero or more Static Segments.<a href="#section-4.2-5" class="pilcrow">¶</a></p>
+<p id="section-4.2-5">The CONNECT_IP_OPTIMIZATION_CREATE capsule contains a sequence of zero or more Static Segments.<a href="#section-4.2-5" class="pilcrow">¶</a></p>
 <span id="name-static-segment-format"></span><div id="fig-static-segment">
 <figure id="figure-5">
           <div class="alignLeft art-text artwork" id="section-4.2-6.1">
@@ -1491,28 +1491,28 @@ Static Segment {
           <h4 id="name-parsing-and-validation">
 <a href="#section-4.2.1" class="section-number selfRef">4.2.1. </a><a href="#name-parsing-and-validation" class="section-name selfRef">Parsing and validation</a>
           </h4>
-<p id="section-4.2.1-1">The receiver parses an OPTIMIZATION_CREATE capsule by reading, in order: the Context ID, the Static Segments Length, zero or more static segments whose encodings consume exactly Static Segments Length bytes, and then two checksum offsets if they are present.<a href="#section-4.2.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.2.1-1">The receiver parses an CONNECT_IP_OPTIMIZATION_CREATE capsule by reading, in order: the Context ID, the Static Segments Length, zero or more static segments whose encodings consume exactly Static Segments Length bytes, and then two checksum offsets if they are present.<a href="#section-4.2.1-1" class="pilcrow">¶</a></p>
 <p id="section-4.2.1-2">The Context ID <span class="bcp14">MUST</span> be non-zero, even-numbered when created by the client, and odd-numbered when created by the proxy. The Context ID <span class="bcp14">MUST NOT</span> have been used previously. Static Segments Length is the total size, in bytes, of the static segments section including each Segmenet Offset, Segment Length, and Segment Payload.<a href="#section-4.2.1-2" class="pilcrow">¶</a></p>
 <p id="section-4.2.1-3">Each Static Segment consists of a Segment Offset, a Segment Length, and exactly Segment Length octets of Segment Payload. Static segments <span class="bcp14">MUST</span> appear in strictly increasing Segment Offset order and <span class="bcp14">MUST NOT</span> overlap.<a href="#section-4.2.1-3" class="pilcrow">¶</a></p>
 <p id="section-4.2.1-4">After Static Segments Length bytes have been consumed, the capsule either ends immediately or contains exactly two additional fields: Checksum Field Offset followed by Checksum Start Offset. If only one variable-length integer is present, or if any bytes remain after the two length integers, the capsule is malformed.<a href="#section-4.2.1-4" class="pilcrow">¶</a></p>
-<p id="section-4.2.1-5">A receiver that did not negotiate acceptance of checksum offload in its direction as defined in <a href="#negotiation" class="auto internal xref">Section 3</a> <span class="bcp14">MUST</span> treat an OPTIMIZATION_CREATE capsule that includes checksum offsets as an error and <span class="bcp14">MUST</span> follow the error-handling procedure in <span><a href="https://rfc-editor.org/rfc/rfc9297#section-3.3" class="relref">Section 3.3</a> of [<a href="#HTTP-DATAGRAMS" class="cite xref">HTTP-DATAGRAMS</a>]</span>. A receiver that has already accepted the maximum number of templates it advertised via the templates member of <code>connect-ip-optimizations</code> <span class="bcp14">MUST</span> treat any additional OPTIMIZATION_CREATE capsule containing a template (that is, with Static Segments Length &gt; 0) as an error and <span class="bcp14">MUST</span> follow the same error-handling procedure.<a href="#section-4.2.1-5" class="pilcrow">¶</a></p>
+<p id="section-4.2.1-5">A receiver that did not negotiate acceptance of checksum offload in its direction as defined in <a href="#negotiation" class="auto internal xref">Section 3</a> <span class="bcp14">MUST</span> treat an CONNECT_IP_OPTIMIZATION_CREATE capsule that includes checksum offsets as an error and <span class="bcp14">MUST</span> follow the error-handling procedure in <span><a href="https://rfc-editor.org/rfc/rfc9297#section-3.3" class="relref">Section 3.3</a> of [<a href="#HTTP-DATAGRAMS" class="cite xref">HTTP-DATAGRAMS</a>]</span>. A receiver that has already accepted the maximum number of templates it advertised via the templates member of <code>connect-ip-optimizations</code> <span class="bcp14">MUST</span> treat any additional CONNECT_IP_OPTIMIZATION_CREATE capsule containing a template (that is, with Static Segments Length &gt; 0) as an error and <span class="bcp14">MUST</span> follow the same error-handling procedure.<a href="#section-4.2.1-5" class="pilcrow">¶</a></p>
 <p id="section-4.2.1-6">If any of the capsule fields are malformed upon reception, the receiver of the capsule <span class="bcp14">MUST</span> follow the error-handling procedure defined in <span><a href="https://rfc-editor.org/rfc/rfc9297#section-3.3" class="relref">Section 3.3</a> of [<a href="#HTTP-DATAGRAMS" class="cite xref">HTTP-DATAGRAMS</a>]</span>.<a href="#section-4.2.1-6" class="pilcrow">¶</a></p>
 <p id="section-4.2.1-7">Per-packet validation uses the reconstruction procedure described in <a href="#reconstruction" class="auto internal xref">Section 5.2</a>.<a href="#section-4.2.1-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
 </div>
-<div id="optimizationdelete-capsule">
+<div id="connectipoptimizationdelete-capsule">
 <section id="section-4.3">
-        <h3 id="name-optimization_delete-capsule">
-<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-optimization_delete-capsule" class="section-name selfRef">OPTIMIZATION_DELETE capsule</a>
+        <h3 id="name-connect_ip_optimization_del">
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-connect_ip_optimization_del" class="section-name selfRef">CONNECT_IP_OPTIMIZATION_DELETE capsule</a>
         </h3>
-<p id="section-4.3-1">OPTIMIZATION_DELETE capsule is used to indicate that a Context ID previously defined by OPTIMIZATION_CREATE capsule will no longer be used.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
-<span id="name-optimization_delete-capsule-"></span><div id="fig-optimization-delete-capsule">
+<p id="section-4.3-1">CONNECT_IP_OPTIMIZATION_DELETE capsule is used to indicate that a Context ID previously defined by CONNECT_IP_OPTIMIZATION_CREATE capsule will no longer be used.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<span id="name-connect_ip_optimization_dele"></span><div id="fig-optimization-delete-capsule">
 <figure id="figure-6">
           <div class="alignLeft art-text artwork" id="section-4.3-2.1">
 <pre>
-OPTIMIZATION_DELETE Capsule {
+CONNECT_IP_OPTIMIZATION_DELETE Capsule {
   Type (i) = 0x1a76846a,
   Length (i),
   Context ID (i),
@@ -1520,11 +1520,11 @@ OPTIMIZATION_DELETE Capsule {
 </pre>
 </div>
 <figcaption><a href="#figure-6" class="selfRef">Figure 6</a>:
-<a href="#name-optimization_delete-capsule-" class="selfRef">OPTIMIZATION_DELETE Capsule Format</a>
+<a href="#name-connect_ip_optimization_dele" class="selfRef">CONNECT_IP_OPTIMIZATION_DELETE Capsule Format</a>
           </figcaption></figure>
 </div>
-<p id="section-4.3-3">After sending an OPTIMIZATION_DELETE Capsule, the sender <span class="bcp14">MUST NOT</span> use the Context ID. Upon receipt, the peer retires the indicated context and releases any negotiated template budget consumed by that context if, and only if, the retired context included a template (that is, its OPTIMIZATION_CREATE had a non-zero Static Segments Length). Retiring a context that had no template (for example, checksum-only) does not affect the template budget.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
-<p id="section-4.3-4">If an OPTIMIZATION_DELETE capsule is received for a Context ID that was not previously and correctly defined by an OPTIMIZATION_CREATE capsule from the peer, the receiver <span class="bcp14">MUST</span> follow the error-handling procedure defined in <span><a href="https://rfc-editor.org/rfc/rfc9297#section-3.3" class="relref">Section 3.3</a> of [<a href="#HTTP-DATAGRAMS" class="cite xref">HTTP-DATAGRAMS</a>]</span>.<a href="#section-4.3-4" class="pilcrow">¶</a></p>
+<p id="section-4.3-3">After sending an CONNECT_IP_OPTIMIZATION_DELETE Capsule, the sender <span class="bcp14">MUST NOT</span> use the Context ID. Upon receipt, the peer retires the indicated context and releases any negotiated template budget consumed by that context if, and only if, the retired context included a template (that is, its CONNECT_IP_OPTIMIZATION_CREATE had a non-zero Static Segments Length). Retiring a context that had no template (for example, checksum-only) does not affect the template budget.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
+<p id="section-4.3-4">If an CONNECT_IP_OPTIMIZATION_DELETE capsule is received for a Context ID that was not previously and correctly defined by an CONNECT_IP_OPTIMIZATION_CREATE capsule from the peer, the receiver <span class="bcp14">MUST</span> follow the error-handling procedure defined in <span><a href="https://rfc-editor.org/rfc/rfc9297#section-3.3" class="relref">Section 3.3</a> of [<a href="#HTTP-DATAGRAMS" class="cite xref">HTTP-DATAGRAMS</a>]</span>.<a href="#section-4.3-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1534,7 +1534,7 @@ OPTIMIZATION_DELETE Capsule {
       <h2 id="name-optimized-datagram-operatio">
 <a href="#section-5" class="section-number selfRef">5. </a><a href="#name-optimized-datagram-operatio" class="section-name selfRef">Optimized Datagram Operation</a>
       </h2>
-<p id="section-5-1">This section defines how endpoints construct and consume datagrams once a Context ID has been created with OPTIMIZATION_CREATE capsule.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<p id="section-5-1">This section defines how endpoints construct and consume datagrams once a Context ID has been created with CONNECT_IP_OPTIMIZATION_CREATE capsule.<a href="#section-5-1" class="pilcrow">¶</a></p>
 <div id="sender-behavior">
 <section id="section-5.1">
         <h3 id="name-sender-behavior">
@@ -1550,7 +1550,7 @@ OPTIMIZATION_DELETE Capsule {
         <h3 id="name-receiver-behavior">
 <a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-receiver-behavior" class="section-name selfRef">Receiver behavior</a>
         </h3>
-<p id="section-5.2-1">A datagram that arrives with a non-zero Context ID that has not been previously and correctly defined by an OPTIMIZATION_CREATE capsule from the peer <span class="bcp14">MUST</span> be dropped.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+<p id="section-5.2-1">A datagram that arrives with a non-zero Context ID that has not been previously and correctly defined by an CONNECT_IP_OPTIMIZATION_CREATE capsule from the peer <span class="bcp14">MUST</span> be dropped.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
 <p id="section-5.2-2">If the CID has no template (that is, Static Segments Length is 0), the datagram payload is the complete reconstructed packet. If the CID has a template, the receiver reconstructs the packet from offset 0 upward by writing static bytes at their declared offsets and filling all remaining byte positions with bytes consumed from the datagram payload in strictly increasing offset order. Reconstruction continues until all payload bytes have been consumed. If the payload is exhausted before the offset of the last static segment have been filled, the packet <span class="bcp14">MUST</span> be dropped.<a href="#section-5.2-2" class="pilcrow">¶</a></p>
 <p id="section-5.2-3">When Checksum Field Offset and Checksum Start Offset are present for the CID, the receiver finishes the Internet checksum as follows: it computes the checksum over the byte range starting at Checksum Start Offset and ending at the reconstructed packet length while treating the checksum field as zero during the sum; it then adds (folds) the 16-bit value currently at Checksum Field Offset, performs end-around carry, and writes the final one's-complement result back at Checksum Field Offset. If either checksum offset is greater than or equal to the reconstructed packet length for this packet, the packet <span class="bcp14">MUST</span> be dropped.<a href="#section-5.2-3" class="pilcrow">¶</a></p>
 </section>
@@ -1563,7 +1563,7 @@ OPTIMIZATION_DELETE Capsule {
 <a href="#section-6" class="section-number selfRef">6. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
       </h2>
 <p id="section-6-1">This specification changes how CONNECT-IP datagrams are constructed but does not weaken transport-layer integrity or confidentiality protections provided by the underlying HTTP mapping. All Capsules travel on the reliable control stream and inherit those protections.<a href="#section-6-1" class="pilcrow">¶</a></p>
-<p id="section-6-2">Context state can be abused for resource exhaustion. Endpoints enforce negotiated limits from <code>connect-ip-optimizations</code>; they <span class="bcp14">MUST</span> reject creations that exceed the declared template budget and must release budget when a context is retired with OPTIMIZATION_DELETE. Implementations <span class="bcp14">SHOULD</span> bound the number of static segments, validate lengths before allocation and cap per-context memory.<a href="#section-6-2" class="pilcrow">¶</a></p>
+<p id="section-6-2">Context state can be abused for resource exhaustion. Endpoints enforce negotiated limits from <code>connect-ip-optimizations</code>; they <span class="bcp14">MUST</span> reject creations that exceed the declared template budget and must release budget when a context is retired with CONNECT_IP_OPTIMIZATION_DELETE. Implementations <span class="bcp14">SHOULD</span> bound the number of static segments, validate lengths before allocation and cap per-context memory.<a href="#section-6-2" class="pilcrow">¶</a></p>
 <p id="section-6-3">Negotiation and Capsule handling are directional and immutable to reduce desynchronization risk. Even/odd Context ID allocation prevents collisions between endpoints; CID 0 is reserved and must not appear in Capsules. Unknown CIDs must be dropped. Reusing a CID within the same connection after deletion is not permitted; endpoints <span class="bcp14">MUST</span> allocate a fresh CID to change behavior.<a href="#section-6-3" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -1580,8 +1580,8 @@ OPTIMIZATION_DELETE Capsule {
 <p id="section-7.1-1">This specification registers the following values in the "HTTP Capsule Types" registry:<a href="#section-7.1-1" class="pilcrow">¶</a></p>
 <p id="section-7.1-2">| Value | Capsule Type
 + --- + --- +
-| 0x1a768460 | OPTIMIZATION_CREATE |
-| 0x1a76846a | OPTIMIZATION_DELETE |<a href="#section-7.1-2" class="pilcrow">¶</a></p>
+| 0x1a768469 | CONNECT_IP_OPTIMIZATION_CREATE |
+| 0x1a76846a | CONNECT_IP_OPTIMIZATION_DELETE |<a href="#section-7.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="http-field-name-registration">
