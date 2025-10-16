@@ -271,6 +271,230 @@ If the CID has no template (that is, Static Segments Length is 0), the datagram 
 
 When Checksum Field Offset and Checksum Start Offset are present for the CID, the receiver finishes the Internet checksum as follows: it computes the checksum over the byte range starting at Checksum Start Offset and ending at the reconstructed packet length while treating the checksum field as zero during the sum; it then adds (folds) the 16-bit value currently at Checksum Field Offset, performs end-around carry, and writes the final one's-complement result back at Checksum Field Offset. If either checksum offset is greater than or equal to the reconstructed packet length for this packet, the packet MUST be dropped.
 
+# Examples
+
+This section illustrates how contexts are created and how senders form compact payloads. All offsets and lengths are in bits in the packet diagrams and field tables. All offsets and lengths are in bytes in segment tables and sample capsules.
+
+## TCP over IPv6 with template and checksum offload
+
+Original sample {{?TCP=RFC9293}} over {{?IPv6=RFC8200}} packet layout is illustrated below. In addition to basic IPv6 and TCP headers it contains Timestamp option as defined in {{Section 3 of ?TCP-PERF=RFC7323}}.
+
+~~~ aasvg
+|0              7|8             15|16            23|16            31|
++--------+-------+-------+--------+----------------+----------------+
+|0 1 1 0 |     0x00      |                 0x4bcde                  | ^
+|Version | Traffic Class |               Flow Label                 | |
++--------+---------------+--------+----------------+----------------+ |
+|             0x0020              |      0x06      |      0x79      | I
+|         Payload length          |  Next header   |   Hop limit    | P
++---------------------------------+----------------+----------------+
+|                                                                   | H
+|              2001:0db8:85a3:0000:0000:8a2e:0370:7334              | E
+|                          Source Address                           | A
+|                                                                   | D
++-------------------------------------------------------------------+ E
+|                                                                   | R
+|              2001:0db8:a42b:0000:0000:7c3a:143a:1529              | |
+|                       Destination Address                         | |
+|                                                                   | v
++---------------------------------+---------------------------------+
+|             0x0050              |             0xd475              | ^
+|           Source port           |        Destination port         | |
++---------------------------------+---------------------------------+ |
+|                            0x6caa4bd7                             | |
+|                          Sequence number                          | |
++-------------------------------------------------------------------+ |
+|                            0x9b16794e                             | T
+|                       Acknowledgment number                       | C
++--------+------------------------+---------------------------------+ P
+|1 0 0 0 |0 0 0 0 0 0 0 1 0 0 0 0 |             0x041e              |
+|Hdr Len |       TCP Flags        |             Window              | H
++--------+------------------------+---------------------------------+ E
+|             0x8f6b              |             0x0000              | A
+|            Checksum             |         Urgent Pointer          | D
++----------------+----------------+----------------+----------------+ E
+|      0x01      |      0x01      |      0x08      |      0x0a      | R
+|  No-Op Option  |  No-Op Option  |TimeStamp Option|     Length     | |
++----------------+----------------+----------------+----------------+ |
+|                            0x119a5db3                             | |
+|                          Timestamp value                          | |
++-------------------------------------------------------------------+ |
+|                            0xd9b4d48d                             | |
+|                       Timestamp echo reply                        | v
++-------------------------------------------------------------------+
+~~~
+{: #original-tcp-ipv6 title="Example TCP over IPv6 packet before optimization"}
+
+Table below illustrates fields present in IPv6 and TCP headers, their offsets in bits from the beginning of the packet and whether they are likely to be static for most packets of a given traffic flow
+
+| Offset | Field name | Length | Value | Static |
+| --- | --- | --- | --- | --- |
+| 0 | Version | 4 | 0110b | Yes |
+| 4 | Traffic Class | 8 | 0x00 | Yes |
+| 12 | Flow label | 20 | 0x4bcde | Yes |
+| 32 | Payload length | 16 | 0x0020 | No |
+| 48 | Next header | 8 | 0x06 | Yes |
+| 56 | Hop limit | 8 | 0x79 | Yes |
+| 64 | Source address | 128 | 2001:0db8:85a3::8a2e:0370:7334 | Yes |
+| 192 | Destination address | 128 | 2001:0db8:a42b::7c3a:143a:1529 | Yes |
+| 320 | Source port | 16 | 0x0050 | Yes |
+| 336 | Destination port | 16 | 0xd475 | Yes |
+| 352 | Sequence number | 32 | 0x6caa4bd7 | No |
+| 384 | Acknowledgement number | 32 | 0x9b16794e | No |
+| 416 | TCP header length | 4 | 1000b | Yes |
+| 420 | TCP Flags | 12 | 000000010000b | No |
+| 432 | Window | 16 | 0x041e | No |
+| 448 | Checksum | 16 | 0x8f6b | No |
+| 464 | Urgent pointer | 16 | 0x0000 | Yes |
+| 480 | No-Op option | 8 | 0x01 | Yes |
+| 488 | No-Op option | 8 | 0x01 | Yes |
+| 496 | Timestamp option | 8 | 0x08 | Yes |
+| 504 | Timestamp option length | 8 | 0x0a | Yes |
+| 512 | Timestamp value | 32 | 0x119a5db3 | No |
+| 544 | Timestamp echo reply | 32 | 0xd9b4d48d | No |
+{: #ipv6-tcp-fields title="IPv6 and TCP header fields in example packet"}
+
+Static segments model the invariant parts except for the isolated 4-bit TCP header length.
+
+Resulting static segments:
+
+| Segment Offset | Segment Length | Segment Contents | Segment Payload |
+| --- | --- | --- | --- |
+| 0 | 4 | Version, Traffic Class and Flow Label | 0x6004bcde |
+| 6 | 38 | Next header, Hop limit, Source address, Destination address, Source port, Destination port | 0x067920010db885a3... |
+| 58 | 6 | Urgent pointer, 2 No-Op TCP options, Timestamp option code and length | 0x00000101080a |
+{: #ipv6-tcp-segments title="Static segments for example IPv6/TCP packet"}
+
+Resulting CONNECT_IP_OPTIMIZATION_CREATE capsule with client-allocated even context id is illustrated below:
+
+~~~
+CONNECT_IP_OPTIMIZATION_CREATE Capsule {
+  Type (i) = 0x1a768469,
+  Length (i) = 58,
+  Context ID (i) = 2,
+  Static Segments Length (i) = 54,
+  Static Segment {
+    Segment Offset (i) = 0,
+    Segment Length (i) = 4,
+    Segment Payload = 0x6004bcde,
+  },
+  Static Segment {
+    Segment Offset (i) = 6,
+    Segment Length (i) = 38,
+    Segment Payload = 0x067920010db885a3000000008a2e0370733420010db8a42b000000007c3a143a15290050d475,
+  },
+  Static Segment {
+    Segment Offset (i) = 58,
+    Segment Length (i) = 6,
+    Segment Payload = 0x00000101080a,
+  },
+  Checksum Field Offset (i) = 56,
+  Checksum Start Offset (i) = 40,
+}
+~~~
+{: #ipv6-tcp-optimization-create title="CONNECT_IP_OPTIMIZATION_CREATE Capsule for example IPv6/TCP packet"}
+
+This template reduces per-packet overhead by omitting 48 bytes of repeated header material, increasing the effective MTU when datagrams are encapsulated in QUIC DATAGRAM frames.
+
+The sender concatenates all variable regions in increasing offset order and replaces checksum field with the IPv6/TCP pseudo-header checksum. Packets that do not match this template (for example packets with IPv6 extension headers or without TCP options) are sent using Context ID 0 or associated with a new context.
+
+## UDP over IPv4 with template and without checksum offload
+
+Original sample {{?UDP=RFC768}} over {{?IPv4=RFC791}} packet layout is illustrated below.
+
+~~~ aasvg
+|0              7|8             15|16            23|16            31|
++--------+-------+----------------+----------------+----------------+
+|0 1 0 0 |0 1 0 1|      0x02      |             0x04cc              | ^
+|Version |Hdr Len| Traffic Class  |          Total length           | |
++--------+-------+----------------+------+--------------------------+ I
+|             0x0000              |0 1 0 |0 0 0 0 0 0 0 0 0 0 0 0 0 | P
+|         Identification          |Flags |     Fragment offset      |
++----------------+----------------+------+--------------------------+ H
+|      0x40      |      0x11      |             0xb21b              | E
+|      TTL       |    Protocol    |         Header checksum         | A
++----------------+----------------+---------------------------------+ D
+|                             192.0.2.1                             | E
+|                          Source Address                           | R
++-------------------------------------------------------------------+ |
+|                             192.0.2.2                             | |
+|                       Destination Address                         | v
++---------------------------------+---------------------------------+
+|             0xc199              |             0x1151              | ^
+|           Source port           |        Destination port         | |
++---------------------------------+---------------------------------+ |
+|             0x04b8              |             0x72de              | U
+|             Length              |            Checksum             | D
++---------------------------------+---------------------------------+ P
+|                                                                   | |
+|                      UDP payload (1200 bytes)                     | |
+|                                ...                                | v
+~~~
+{: #original-udp-ipv4 title="Example UDP over IPv4 packet before optimization"}
+
+Table below illustrates fields present in IPv4 header and UDP, their offsets in bits from the beginning of the packet and if they are likely to be static for most packets of a given traffic flow
+
+| Offset | Field name | Length | Value | Static |
+| --- | --- | --- | --- | --- |
+| 0 | Version | 4 | 0100b | Yes |
+| 4 | Header length | 4 | 0101b | Yes |
+| 8 | Traffic Class | 8 | 0x02 | Yes |
+| 16 | Total length | 16 | 0x04cc | No |
+| 32 | Identification | 16 | 0x0000 | Yes |
+| 48 | Flags | 3 | 010b | Yes |
+| 51 | Fragment offset | 13 | 0000000000000b | Yes |
+| 64 | TTL | 8 | 0x40 | Yes |
+| 72 | Protocol | 8 | 0x11 | Yes |
+| 80 | Header checksum | 16 | 0xb21b | No |
+| 96 | Source address | 32 | 192.0.2.1 | Yes |
+| 128 | Destination address | 32 | 192.0.2.2 | Yes |
+| 160 | Source port | 16 | 0xc199 | Yes |
+| 176 | Destination port | 16 | 0x1151 | Yes |
+| 192 | Length | 16 | 0x04b8 | No |
+| 208 | Checksum | 16 | 0x72de | No |
+| 224 | UDP payload | 9600 | ... | No |
+{: #ipv4-udp-fields title="IPv4 header and UDP fields in example packet"}
+
+Static segments model the invariant parts:
+
+| Segment Offset | Segment Length | Segment Contents | Segment Payload |
+| --- | --- | --- | --- |
+| 0 | 2 | Version, Header length and Traffic Class | 0x4502 |
+| 4 | 6 | Identification, Flags, Fragment offset, TTL and Protocol | 0x000040004011 |
+| 12 | 12 | Source address, Destination address, Source port and Destination port | 0xc0000201c0000202c1991151 |
+{: #ipv4-udp-segments title="Static segments for example IPv4/UDP packet"}
+
+Resulting CONNECT_IP_OPTIMIZATION_CREATE capsule with proxy-allocated odd Context ID is illustrated below:
+
+~~~
+CONNECT_IP_OPTIMIZATION_CREATE Capsule {
+  Type (i) = 0x1a768469,
+  Length (i) = 28,
+  Context ID (i) = 3,
+  Static Segments Length (i) = 26,
+  Static Segment {
+    Segment Offset (i) = 0,
+    Segment Length (i) = 2,
+    Segment Payload = 0x4502,
+  },
+  Static Segment {
+    Segment Offset (i) = 4,
+    Segment Length (i) = 6,
+    Segment Payload = 0x000040004011,
+  },
+  Static Segment {
+    Segment Offset (i) = 12,
+    Segment Length (i) = 12,
+    Segment Payload = 0xc0000201c0000202c1991151,
+  }
+}
+~~~
+{: #ipv4-udp-optimization-create title="CONNECT_IP_OPTIMIZATION_CREATE Capsule for example IPv4/UDP packet"}
+
+This template omits 20 bytes of repeated header material, increasing the effective MTU when datagrams are encapsulated in QUIC DATAGRAM frames.
+
+The sender concatenates all variable regions in increasing offset order. Because this template does not define checksum offload, the UDP checksum is computed by the sender as usual; the receiver does not perform checksum finishing for this context.
+
 # Security Considerations
 
 This specification changes how CONNECT-IP datagrams are constructed but does not weaken transport-layer integrity or confidentiality protections provided by the underlying HTTP mapping. All Capsules travel on the reliable control stream and inherit those protections.
