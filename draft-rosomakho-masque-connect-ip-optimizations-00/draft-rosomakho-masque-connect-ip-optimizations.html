@@ -1,0 +1,2501 @@
+<!DOCTYPE html>
+<html lang="en" class="Internet-Draft">
+<head>
+<meta charset="utf-8">
+<meta content="Common,Latin" name="scripts">
+<meta content="initial-scale=1.0" name="viewport">
+<title>Reusable templates and checksum offload for CONNECT-IP</title>
+<meta content="Yaroslav Rosomakho" name="author">
+<meta content="
+       This document defines extensions to the CONNECT-IP protocol (RFC 9484) that improve the efficiency of datagram transmission by introducing reusable templates and checksum offload capabilities. 
+       Reusable templates allow endpoints to associate Context Identifiers with static portions of packet headers, enabling datagrams to omit repeated byte sequences while remaining self-contained and stateless on the wire. Checksum offload enables endpoints to delegate computation of transport-layer checksums to the receiver by signaling the relevant offsets within the reconstructed packet. 
+       These optimisations reduce per-packet overhead, processing cost, and effectively increase the usable maximum transmission unit (MTU) when CONNECT-IP datagrams are encapsulated in QUIC DATAGRAM frames. 
+    " name="description">
+<meta content="xml2rfc 3.30.2" name="generator">
+<meta content="template" name="keyword">
+<meta content="checksum" name="keyword">
+<meta content="connect-ip" name="keyword">
+<meta content="draft-rosomakho-masque-connect-ip-optimizations-latest" name="ietf.draft">
+<!-- Generator version information:
+  xml2rfc 3.30.2
+    Python 3.12.11
+    ConfigArgParse 1.7
+    google-i18n-address 3.1.1
+    intervaltree 3.1.0
+    Jinja2 3.1.6
+    lxml 5.3.1
+    platformdirs 4.4.0
+    pycountry 24.6.1
+    PyYAML 6.0.2
+    requests 2.32.5
+    setuptools 80.9.0
+    wcwidth 0.2.14
+-->
+<link href="draft-rosomakho-masque-connect-ip-optimizations.xml" rel="alternate" type="application/rfc+xml">
+<link href="#copyright" rel="license">
+<style type="text/css">@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('Lora SemiBold'), local('Lora-SemiBold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-semibold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: light dark;
+  --background-color: #fff;
+  --text-color: #222;
+  --title-color: #191919;
+  --link-color: #2a6496;
+  --highlight-color: #f9f9f9;
+  --line-color: #eee;
+  --pilcrow-weak: #ddd;
+  --pilcrow-strong: #bbb;
+  --small-font-size: 14.5px;
+  --font-mono: 'Oxygen Mono', monospace;
+  --font-title: "Sofia Sans Semi Condensed", sans-serif;
+  scrollbar-color: #bbb #eee;
+}
+body {
+  max-width: 600px;
+  margin: 75px auto;
+  padding: 0 5px;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  font: 16px/22px "Lora", serif;
+  scroll-behavior: smooth;
+}
+
+.ears {
+  display: none;
+}
+
+/* headings */
+section {
+  clear: both;
+}
+.section-number {
+  padding-right: 0.5em;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-title);
+  font-weight: 680;
+  margin: 0.8em 0 0.3em;
+  font-size-adjust: 0.5;
+  color: var(--title-color);
+}
+h1#title {
+  font-size: 32px;
+  line-height: 40px;
+  clear: both;
+}
+h1#title, h1#rfcnum {
+  margin: 1.5em 0 0.2em;
+}
+h1#rfcnum + h1#title {
+  margin: 0.2em 0;
+}
+
+h1, h2, h3 {
+  font-size: 22px;
+  line-height: 27px;
+}
+h4, h5, h6 {
+  font-size: 20px;
+  line-height: 24px;
+}
+
+/* general structure */
+.author {
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+#abstract+p {
+  font-size: 18px;
+  line-height: 24px;
+}
+#abstract+p code, #abstract+p samp, #abstract+p tt {
+  font-size: 16px;
+  line-height: 0;
+}
+
+p {
+  padding: 0;
+  margin: 0.5em 0;
+  text-align: left;
+}
+div {
+  margin: 0;
+}
+.alignRight.art-text {
+  background-color: var(--highlight-color);
+  border: 1px solid var(--line-color);
+  border-radius: 3px;
+  padding: 0.5em 1em 0;
+  margin-bottom: 0.5em;
+}
+.alignRight.art-text pre {
+  padding: 0;
+  width: auto;
+}
+.alignRight {
+  margin: 1em 0;
+}
+.alignRight > *:first-child {
+  border: none;
+  margin: 0;
+  float: right;
+  clear: both;
+}
+.alignRight > *:nth-child(2) {
+  clear: both;
+  display: block;
+  border: none;
+}
+svg {
+  display: block;
+}
+/* font-family isn't space-separated, but =~ will have to do */
+svg[font-family~="monospace" i], svg [font-family~="monospace" i] {
+  font-family: var(--font-mono);
+}
+.alignCenter.art-text {
+  background-color: var(--highlight-color);
+  border: 1px solid var(--line-color);
+  border-radius: 3px;
+  padding: 0.5em 1em 0;
+  margin-bottom: 0.5em;
+}
+.alignCenter.art-text pre {
+  padding: 0;
+  width: auto;
+}
+.alignCenter {
+  margin: 1em 0;
+}
+.alignCenter > *:first-child {
+  border: none;
+  /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+     support flexbox yet.
+  */
+  display: table;
+  margin: 0 auto;
+}
+
+/* lists */
+ol, ul {
+  padding: 0;
+  margin: 0 0 0.5em 2em;
+  & :is(ol, ul) {
+    margin-left: 1em;
+  }
+}
+li {
+  margin: 0 0 0.25em 0;
+}
+ul.empty, .ulEmpty {
+  list-style-type: none;
+  & li {
+    margin-top: 0.5em;
+  }
+}
+:is(ul, ol).compact, .ulCompact, .olCompact {
+  margin: 0 0 0 2em;
+  & li {
+    margin: 0;
+    & :first-child { margin-top: 0; }
+    & :last-child { margin-bottom: 0; }
+  }
+}
+
+/* definition lists */
+dl {
+  clear: left;
+  --indent: 3ch;
+  /* --indent: attr(indent ch); not supported in any browser, but we can dream */
+  &.olPercent {
+    --indent: 5ch;
+    & > dt {
+      min-width: calc(var(--indent) - 2ch);
+    }
+  }
+  &.olPercent > dt {
+    float: none;
+  }
+
+  dl > dd > & {
+    margin-top: 0.5em;
+    margin-bottom: 0;
+  }
+}
+dl:not(.dlNewline) > dt {
+  float: left;
+  margin-right: 2ch;
+  min-width: 8ch;
+}
+dl > dd {
+  margin-bottom: .8em;
+  margin-left: var(--indent) !important; /* stupid element overrides */
+  min-height: 2ex;
+}
+:is(dl.compact, .dlCompact) > dd {
+  margin-bottom: 0;
+  & > :is(:first-child, .break:first-child + *) {
+    margin-top: 0;
+  }
+  & > :is(:last-child) {
+    margin-bottom: 0;
+  }
+}
+:is(dd, span).break {
+  display: none;
+}
+
+/* links */
+a, a[href].selfRef:hover {
+  text-decoration: none;
+}
+a[href] {
+  color: var(--link-color);
+}
+a[href].selfRef, .iref + a[href].internal {
+  color: var(--text-color);
+}
+a[href]:hover {
+  text-decoration: underline;
+}
+a[href].selfRef:hover {
+  background-color: var(--highlight-color);
+}
+a.xref:is(.cite, .auto), :is(#status-of-memo, #copyright) a {
+  white-space: nowrap;
+}
+
+/* Figures */
+tt, code, pre {
+  background-color: var(--highlight-color);
+  font: 14px/22px var(--font-mono);
+}
+tt, code {
+  /* changing the font for inline elements leads to different ascender
+     and descender heights; as we want to retain baseline alignment,
+     remove leading to avoid altering the final height of lines
+     note: this fails if these blocks take an entire line,
+     a different solution would be great */
+  line-height: 0;
+}
+:is(h1, h2, h3, h4, h5, h6) :is(tt, code) {
+  font-size: 84%;
+}
+pre {
+  border: 1px solid var(--line-color);
+  font-size: 13.5px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  margin: 5px;
+  padding: 5px;
+}
+img {
+  max-width: 100%;
+}
+figure {
+  margin: 0.5em 0;
+  padding: 0;
+}
+figure blockquote {
+  margin: 0.8em 0.4em 0.4em;
+}
+figcaption, caption {
+  font-style: italic;
+  margin: 0.5em 1.5em;
+  text-align: left;
+  caption-side: bottom;
+}
+@media screen {
+  /* Auto-collapse boilerplate. */
+  :is(#status-of-memo, #copyright) p {
+    margin: -2px 0;
+    max-height: 0;
+    transition: max-height 2s ease, margin 0.5s ease 0.5s;
+    overflow: hidden;
+  }
+  :is(#status-of-memo, #copyright):hover p,
+  :is(#status-of-memo, #copyright) h2:target ~ p {
+    margin: 0.5em 0;
+    max-height: 500px;
+    overflow: auto;
+  }
+  pre, svg {
+    display: inline-block;
+    /* In the horizontal direction, sometimes people make over-sized figures.
+       Scrollbars for those is therefore necessary: auto adds them as necessary..
+       In the vertical direction, the line-height can combine with the font
+       asender/descender height to produce scrollbars: hidden avoids that. */
+    overflow: auto hidden;
+  }
+  pre {
+    max-width: 100%;
+    width: calc(100% - 22px - 1em);
+  }
+  svg {
+    max-width: calc(100% - 22px - 1em);
+  }
+  figure pre {
+    display: block;
+    width: calc(100% - 25px);
+  }
+  :is(pre, svg) + .pilcrow {
+    display: inline-block;
+    vertical-align: text-bottom;
+    padding-bottom: 8px;
+  }
+}
+
+/* aside, blockquote */
+aside, blockquote {
+  margin-left: 0;
+  padding: 0 2em;
+  font-style: italic;
+}
+blockquote {
+  margin: 1em 0;
+}
+cite {
+  display: block;
+  text-align: right;
+  font-style: italic;
+}
+
+/* tables */
+table {
+  width: auto;
+  max-width: 100%;
+  margin: 0 0 1em;
+  border-collapse: collapse;
+}
+table.right {
+  margin-left: auto;
+}
+table.center {
+  margin-left: auto;
+  margin-right: auto;
+}
+table.left {
+  margin-right: auto;
+}
+table .text-left {
+  text-align: left;
+}
+table .text-center {
+  text-align: center;
+}
+table .text-right {
+  text-align: right;
+}
+
+thead, tbody {
+  border: 1px solid var(--line-color);
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 5px 10px;
+}
+th {
+  background-color: var(--line-color);
+}
+:is(tr:nth-child(2n), thead+tbody > tr:nth-child(2n+1)) > td {
+  background-color: var(--background-color);
+}
+:is(tr:nth-child(2n+1), thead+tbody > tr:nth-child(2n)) > td {
+  background-color: var(--highlight-color);
+}
+table caption {
+  margin: 0;
+  padding: 3px 0 3px 1em;
+}
+table p {
+  margin: 0;
+}
+
+/* pilcrow */
+a.pilcrow {
+  margin-left: 3px;
+  opacity: 0.2;
+  user-select: none;
+  &[href] {
+    color: var(--pilcrow-weak);
+    &:hover { text-decoration: none; }
+  }
+}
+@media not print {
+  :hover > a.pilcrow {
+    opacity: 1;
+  }
+  a.pilcrow[href]:hover {
+    color: var(--pilcrow-strong);
+    background-color: transparent;
+  }
+}
+@media print {
+  a.pilcrow {
+    display: none;
+  }
+}
+
+/* misc */
+hr {
+  border: 0;
+  border-top: 1px solid var(--line-color);
+}
+.bcp14 {
+  font-variant: small-caps;
+  font-weight: 600;
+  font-size: var(--small-font-size);
+}
+.role {
+  font-variant: all-small-caps;
+}
+sub, sup {
+  line-height: 1;
+  font-size: 80%;
+}
+
+/* info block */
+#identifiers {
+  margin: 0;
+  font-size: var(--small-font-size);
+  line-height: 18px;
+  --identifier-width: 15ch;
+  & dt {
+    width: var(--identifier-width);
+    min-width: var(--identifier-width);
+    clear: left;
+    float: left;
+    text-align: right;
+    margin-right: 1ch;
+  }
+  & dd {
+    margin: 0;
+    margin-left: calc(1em + var(--identifier-width)) !important;
+    min-width: 5em;
+  }
+  & .authors {
+    & .author {
+      display: inline-block;
+      margin-right: 1.5em;
+    }
+    & .org {
+      font-style: italic;
+    }
+  }
+}
+
+/* The prepared/rendered info at the very bottom of the page */
+.docInfo {
+  color: #999;
+  font-size: 0.9em;
+  font-style: italic;
+  margin-top: 2em;
+}
+.docInfo .prepared {
+  float: right;
+}
+
+/* table of contents */
+#toc {
+  padding: 0.75em 0 2em 0;
+  margin-bottom: 1em;
+
+  & nav {
+    & ul {
+      margin: 0 0.5em 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    & li {
+      line-height: 1.3em;
+      margin: 2px 0;
+      padding-left: 1.2em;
+      text-indent: -1.2em;
+    }
+  }
+  & a.xref {
+    white-space: normal;
+  }
+}
+
+.references {
+  & > dt {
+    text-align: right;
+    font-weight: bold;
+    min-width: 10ch;
+    margin-right: 1.5ch;
+    &:target::before {
+      content: "⇒";
+      margin: 0 10px 0 -25px;
+    }
+  }
+  & > dd {
+    margin-left: 12ch !important;
+    overflow: visible;
+    & .refInstance {
+      margin-bottom: 0.8em;
+    }
+    & .ascii {
+      margin-bottom: 0.25em;
+    }
+  }
+}
+
+#rfc\.index\.index + ul {
+  margin-left: 0;
+}
+
+/* authors */
+address.vcard {
+  font-style: normal;
+  max-width: 20em;
+  margin: 1em auto 1em 0;
+
+  & .nameRole {
+    font-weight: 700;
+    margin-left: 0;
+  }
+  & .label {
+    margin: 0.5em 0;
+  }
+  & .type {
+    display: none;
+  }
+  & .alternative-contact {
+    margin: 0.5em 0 0.25em 0;
+  }
+  & .non-ascii {
+    margin: 0 0 0 2em;
+  }
+  & div.left {
+    text-align: left;
+  }
+  & div.right {
+    text-align: right;
+  }
+}
+
+hr.addr {
+  border-top: 1px dashed;
+  margin: 0;
+  color: #ddd;
+  max-width: calc(100% - 16px);
+}
+@media (min-width: 500px) {
+  #authors-addresses > section {
+    column-count: 2;
+    column-gap: 20px;
+  }
+  #authors-addresses > section > h2 {
+    column-span: all;
+  }
+  /* hack for break-inside: avoid-column */
+  #authors-addresses address {
+    display: inline-block;
+    break-inside: avoid-column;
+  }
+}
+
+/* Comments */
+.rfcEditorRemove p:first-of-type {
+  font-style: italic;
+}
+.cref {
+  background-color: rgba(249, 232, 105, 0.3);
+  padding: 2px 4px;
+}
+.crefSource {
+  font-style: italic;
+}
+
+@media screen {
+  #toc nav {
+    font-family: var(--font-title);
+    font-weight: 360;
+    & > ul { margin-bottom: 2em; }
+    & ul {
+      margin: 0 0 0 4px;
+      & :is(p, li) {
+        margin: 2px 0;
+      }
+    }
+  }
+  #toc a.toplink {
+    float: right;
+  }
+}
+@media not screen {
+  #toc a.toplink {
+    display: none;
+  }
+}
+
+
+/* TOC layout for smaller screens */
+@media screen and (max-width: 929px) {
+  #toc {
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    padding: 1px 0 0 0;
+    margin: 0;
+    border-bottom: 1px solid #ccc;
+    opacity: 0.6;
+  }
+  #toc h2 {
+    margin: 0;
+    padding: 2px 0 2px 6px;
+    padding-right: 1em;
+    font-size: 18px;
+    line-height: 24px;
+    min-width: 190px;
+    text-align: right;
+    background-color: #444;
+    color: white;
+    cursor: pointer;
+    &::before { /* css hamburger */
+      float: right;
+      position: relative;
+      width: 1em;
+      height: 1px;
+      left: -164px;
+      margin: 8px 0 0 0;
+      background: white none repeat scroll 0 0;
+      box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+      content: "";
+    }
+  }
+  #toc nav {
+    display: none;
+    background-color: var(--background-color);
+    padding: 0.5em 1em 1em;
+    overflow: auto;
+    overscroll-behavior: contain;
+    height: calc(100vh - 48px);
+    border-left: 1px solid #ddd;
+  }
+  #toc.active {
+    opacity: 1;
+    & nav { display: block; }
+  }
+  /* Make the collapsed ToC header render white on gray also when it's a link */
+  #toc h2 a,
+  #toc h2 a:is(:link, :focus, :hover),
+  #toc a.toplink,
+  #toc a.toplink:hover {
+    color: white;
+    background-color: #444;
+    text-decoration: none;
+  }
+  #toc a.toplink {
+    margin: 2px 0.5em 0;
+  }
+}
+
+/* TOC layout for wide screens */
+@media screen and (min-width: 930px) {
+  body {
+    padding-right: 360px;
+    padding-right: calc(min(180px + 20%, 500px));
+  }
+  #toc {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    right: calc(50vw - 480px);
+    width: 312px;
+    margin: 0;
+    padding: 0;
+    z-index: 1;
+  }
+  #toc h2 {
+    margin: 0;
+    padding: 0.25em 1em 1em 0;
+  }
+  #toc nav {
+    display: block;
+    height: calc(90vh - 84px);
+    bottom: 0;
+    padding: 0.5em 0 2em;
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+  img { /* future proofing */
+    max-width: 100%;
+    height: auto;
+  }
+  #toc a.toplink {
+    margin: 8px 0.5em 0;
+  }
+}
+
+/* pagination */
+@media print {
+  body {
+    width: 100%;
+  }
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+  #n-copyright-notice {
+    border-bottom: none;
+  }
+  #toc, #n-introduction {
+    page-break-before: always;
+  }
+  #toc {
+    border-top: none;
+    padding-top: 0;
+  }
+  figure, pre, .vcard {
+    page-break-inside: avoid;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  :is(h2, h3, h4, h5, h6)+*, dd {
+    page-break-before: avoid;
+  }
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 10pt;
+  }
+  table {
+    border: 1px solid #ddd;
+  }
+  td {
+    border-top: 1px solid #ddd;
+  }
+}
+
+@page :first {
+  padding-top: 0;
+  @top-left {
+    content: normal;
+    border: none;
+  }
+  @top-center {
+    content: normal;
+    border: none;
+  }
+  @top-right {
+    content: normal;
+    border: none;
+  }
+}
+
+@page {
+  size: A4;
+  margin-bottom: 45mm;
+  padding-top: 20px;
+}
+
+/* Dark mode. */
+@media (prefers-color-scheme: dark) {
+:root {
+  --background-color: #121212;
+  --text-color: #f0f0f0;
+  --title-color: #fff;
+  --link-color: #4da4f0;
+  --highlight-color: #282828;
+  --line-color: #444;
+  --pilcrow-weak: #444;
+  --pilcrow-strong: #666;
+  scrollbar-color: #777 #333;
+}
+}
+
+/* SVG Trick: a prefix match works because only black and white are allowed */
+svg :is([stroke="black"], [stroke^="#000"]) {
+  stroke: var(--text-color);
+}
+svg :is([stroke="white"], [stroke^="#fff"]) {
+  stroke: var(--background-color);
+}
+svg :is([fill="black"], [fill^="#000"], :not([fill])) {
+  fill: var(--text-color);
+}
+svg :is([fill="white"], [fill^="#fff"]) {
+  fill: var(--background-color);
+}
+</style>
+
+</head>
+<body class="xml2rfc">
+<table class="ears">
+<thead><tr>
+<td class="left">Internet-Draft</td>
+<td class="center">Reusable templates and checksum offload </td>
+<td class="right">October 2025</td>
+</tr></thead>
+<tfoot><tr>
+<td class="left">Rosomakho</td>
+<td class="center">Expires 19 April 2026</td>
+<td class="right">[Page]</td>
+</tr></tfoot>
+</table>
+<div id="external-metadata" class="document-information"></div>
+<div id="internal-metadata" class="document-information">
+<dl id="identifiers">
+<dt class="label-workgroup">Workgroup:</dt>
+<dd class="workgroup">Multiplexed Application Substrate over QUIC Encryption</dd>
+<dt class="label-internet-draft">Internet-Draft:</dt>
+<dd class="internet-draft">draft-rosomakho-masque-connect-ip-optimizations-latest</dd>
+<dt class="label-published">Published:</dt>
+<dd class="published">
+<time datetime="2025-10-16" class="published">16 October 2025</time>
+    </dd>
+<dt class="label-intended-status">Intended Status:</dt>
+<dd class="intended-status">Standards Track</dd>
+<dt class="label-expires">Expires:</dt>
+<dd class="expires"><time datetime="2026-04-19">19 April 2026</time></dd>
+<dt class="label-authors">Author:</dt>
+<dd class="authors">
+<div class="author">
+      <div class="author-name">Y. Rosomakho</div>
+<div class="org">Zscaler</div>
+</div>
+</dd>
+</dl>
+</div>
+<h1 id="title">Reusable templates and checksum offload for CONNECT-IP</h1>
+<section id="section-abstract">
+      <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
+<p id="section-abstract-1">This document defines extensions to the CONNECT-IP protocol (RFC 9484) that improve the efficiency of datagram transmission by introducing reusable templates and checksum offload capabilities.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-2">Reusable templates allow endpoints to associate Context Identifiers with static portions of packet headers, enabling datagrams to omit repeated byte sequences while remaining self-contained and stateless on the wire. Checksum offload enables endpoints to delegate computation of transport-layer checksums to the receiver by signaling the relevant offsets within the reconstructed packet.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
+<p id="section-abstract-3">These optimisations reduce per-packet overhead, processing cost, and effectively increase the usable maximum transmission unit (MTU) when CONNECT-IP datagrams are encapsulated in QUIC DATAGRAM frames.<a href="#section-abstract-3" class="pilcrow">¶</a></p>
+</section>
+<section class="note rfcEditorRemove" id="section-note.1">
+      <h2 id="name-about-this-document">
+<a href="#name-about-this-document" class="section-name selfRef">About This Document</a>
+      </h2>
+<p id="section-note.1-1">This note is to be removed before publishing as an RFC.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
+<p id="section-note.1-2">
+        The latest revision of this draft can be found at <span><a href="https://yaroslavros.github.io/connect-ip-optimizations/draft-rosomakho-masque-connect-ip-optimizations.html">https://yaroslavros.github.io/connect-ip-optimizations/draft-rosomakho-masque-connect-ip-optimizations.html</a></span>.
+        Status information for this document may be found at <span><a href="https://datatracker.ietf.org/doc/draft-rosomakho-masque-connect-ip-optimizations/">https://datatracker.ietf.org/doc/draft-rosomakho-masque-connect-ip-optimizations/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
+<p id="section-note.1-3">
+        Discussion of this document takes place on the
+        Multiplexed Application Substrate over QUIC Encryption Working Group mailing list (<span><a href="mailto:masque@ietf.org">mailto:masque@ietf.org</a></span>),
+        which is archived at <span><a href="https://mailarchive.ietf.org/arch/browse/masque/">https://mailarchive.ietf.org/arch/browse/masque/</a></span>.
+        Subscribe at <span><a href="https://www.ietf.org/mailman/listinfo/masque/">https://www.ietf.org/mailman/listinfo/masque/</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
+<p id="section-note.1-4">Source for this draft and an issue tracker can be found at
+        <span><a href="https://github.com/yaroslavros/connect-ip-optimizations">https://github.com/yaroslavros/connect-ip-optimizations</a></span>.<a href="#section-note.1-4" class="pilcrow">¶</a></p>
+</section>
+<div id="status-of-memo">
+<section id="section-boilerplate.1">
+        <h2 id="name-status-of-this-memo">
+<a href="#name-status-of-this-memo" class="section-name selfRef">Status of This Memo</a>
+        </h2>
+<p id="section-boilerplate.1-1">
+        This Internet-Draft is submitted in full conformance with the
+        provisions of BCP 78 and BCP 79.<a href="#section-boilerplate.1-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-2">
+        Internet-Drafts are working documents of the Internet Engineering Task
+        Force (IETF). Note that other groups may also distribute working
+        documents as Internet-Drafts. The list of current Internet-Drafts is
+        at <span><a href="https://datatracker.ietf.org/drafts/current/">https://datatracker.ietf.org/drafts/current/</a></span>.<a href="#section-boilerplate.1-2" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-3">
+        Internet-Drafts are draft documents valid for a maximum of six months
+        and may be updated, replaced, or obsoleted by other documents at any
+        time. It is inappropriate to use Internet-Drafts as reference
+        material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-4">
+        This Internet-Draft will expire on 19 April 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="copyright">
+<section id="section-boilerplate.2">
+        <h2 id="name-copyright-notice">
+<a href="#name-copyright-notice" class="section-name selfRef">Copyright Notice</a>
+        </h2>
+<p id="section-boilerplate.2-1">
+            Copyright (c) 2025 IETF Trust and the persons identified as the
+            document authors. All rights reserved.<a href="#section-boilerplate.2-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.2-2">
+            This document is subject to BCP 78 and the IETF Trust's Legal
+            Provisions Relating to IETF Documents
+            (<span><a href="https://trustee.ietf.org/license-info">https://trustee.ietf.org/license-info</a></span>) in effect on the date of
+            publication of this document. Please review these documents
+            carefully, as they describe your rights and restrictions with
+            respect to this document. Code Components extracted from this
+            document must include Revised BSD License text as described in
+            Section 4.e of the Trust Legal Provisions and are provided without
+            warranty as described in the Revised BSD License.<a href="#section-boilerplate.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="toc">
+<section id="section-toc.1">
+        <a href="#" onclick="scroll(0,0)" class="toplink">▲</a><h2 id="name-table-of-contents">
+<a href="#name-table-of-contents" class="section-name selfRef">Table of Contents</a>
+        </h2>
+<nav class="toc"><ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
+            <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
+            <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-conventions-and-definitions" class="internal xref">Conventions and Definitions</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-negotiation-of-capabilities" class="internal xref">Negotiation of Capabilities</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1">
+                <p id="section-toc.1-1.3.2.1.1" class="keepWithNext"><a href="#section-3.1" class="auto internal xref">3.1</a>.  <a href="#name-header-definition" class="internal xref">Header Definition</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2">
+                <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-negotiation-behavior" class="internal xref">Negotiation Behavior</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3">
+                <p id="section-toc.1-1.3.2.3.1"><a href="#section-3.3" class="auto internal xref">3.3</a>.  <a href="#name-example" class="internal xref">Example</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-optimization-capsules" class="internal xref">Optimization capsules</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-context-id-allocation" class="internal xref">Context ID allocation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-connect_ip_optimization_cre" class="internal xref">CONNECT_IP_OPTIMIZATION_CREATE capsule</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2.2.1">
+                    <p id="section-toc.1-1.4.2.2.2.1.1"><a href="#section-4.2.1" class="auto internal xref">4.2.1</a>.  <a href="#name-parsing-and-validation" class="internal xref">Parsing and validation</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-connect_ip_optimization_del" class="internal xref">CONNECT_IP_OPTIMIZATION_DELETE capsule</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-optimized-datagram-operatio" class="internal xref">Optimized Datagram Operation</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
+                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-sender-behavior" class="internal xref">Sender behavior</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
+                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-receiver-behavior" class="internal xref">Receiver behavior</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-examples" class="internal xref">Examples</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1">
+                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-tcp-over-ipv6-with-template" class="internal xref">TCP over IPv6 with template and checksum offload</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2">
+                <p id="section-toc.1-1.6.2.2.1"><a href="#section-6.2" class="auto internal xref">6.2</a>.  <a href="#name-udp-over-ipv4-with-template" class="internal xref">UDP over IPv4 with template and without checksum offload</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1">
+                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-http-capsule-types-registra" class="internal xref">HTTP Capsule Types Registration</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
+                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-http-field-name-registratio" class="internal xref">HTTP Field Name Registration</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1">
+                <p id="section-toc.1-1.9.2.1.1"><a href="#section-9.1" class="auto internal xref">9.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2">
+                <p id="section-toc.1-1.9.2.2.1"><a href="#section-9.2" class="auto internal xref">9.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
+            <p id="section-toc.1-1.11.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
+</li>
+        </ul>
+</nav>
+</section>
+</div>
+<div id="introduction">
+<section id="section-1">
+      <h2 id="name-introduction">
+<a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
+      </h2>
+<p id="section-1-1">The CONNECT-IP method <span>[<a href="#CONNECT-IP" class="cite xref">CONNECT-IP</a>]</span> allows an HTTP client to establish an IP tunnel through an HTTP proxy and exchange IP packets using either HTTP/3 Datagrams specified in <span><a href="https://rfc-editor.org/rfc/rfc9297#section-2.1" class="relref">Section 2.1</a> of [<a href="#HTTP-DATAGRAMS" class="cite xref">HTTP-DATAGRAMS</a>]</span> or DATAGRAM capsules specified in <span><a href="https://rfc-editor.org/rfc/rfc9297#section-3.5" class="relref">Section 3.5</a> of [<a href="#HTTP-DATAGRAMS" class="cite xref">HTTP-DATAGRAMS</a>]</span>. Each packet is carried in full, including all transport and network headers, which provides simplicity and interoperability but incurs per-packet overhead due to the repeated transmission of largely invariant header fields.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">This document introduces two optional extensions, Reusable Templates and Checksum Offload, that optimise CONNECT-IP datagram transmission without changing the existing protocol semantics.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">Reusable templates allow endpoints to associate a Context Identifier with a reusable packet layout consisting of static and variable byte regions. Once a template has been installed using reliable Capsules, datagrams referencing the same Context Identifier carry only the variable portions of the packet. This reduces the size of transmitted datagrams and processing overhead, while maintaining on-the-wire statelessness and compatibility with intermediaries that are unaware of these optimisations.<a href="#section-1-3" class="pilcrow">¶</a></p>
+<p id="section-1-4">Checksum offload enables endpoints to delegate computation of transport-layer checksums to the receiver by identifying the checksum field offset and the start of the checksum coverage within the reconstructed packet. This mirrors hardware checksum-offload behavior used on network interfaces and tunnel devices, reducing per-packet CPU cost for encapsulating or decapsulating CONNECT-IP traffic.<a href="#section-1-4" class="pilcrow">¶</a></p>
+<p id="section-1-5">When CONNECT-IP datagrams are encapsulated in QUIC DATAGRAM frames, these optimisations also increase the effective maximum transmission unit (MTU) by reducing the number of bytes carried inside each QUIC packet.<a href="#section-1-5" class="pilcrow">¶</a></p>
+<p id="section-1-6">Both extensions are negotiated at CONNECT-IP establishment and signalled using Capsules on the reliable control stream. When necessary, endpoints can fall back to transmitting complete IP packets using Context ID 0, which represents unoptimised datagrams containing the full IP packet as defined in <span><a href="https://rfc-editor.org/rfc/rfc9484#section-5" class="relref">Section 5</a> of [<a href="#CONNECT-IP" class="cite xref">CONNECT-IP</a>]</span>.<a href="#section-1-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="conventions-and-definitions">
+<section id="section-2">
+      <h2 id="name-conventions-and-definitions">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-conventions-and-definitions" class="section-name selfRef">Conventions and Definitions</a>
+      </h2>
+<p id="section-2-1">The key words "<span class="bcp14">MUST</span>", "<span class="bcp14">MUST NOT</span>", "<span class="bcp14">REQUIRED</span>", "<span class="bcp14">SHALL</span>", "<span class="bcp14">SHALL NOT</span>", "<span class="bcp14">SHOULD</span>", "<span class="bcp14">SHOULD NOT</span>", "<span class="bcp14">RECOMMENDED</span>", "<span class="bcp14">NOT RECOMMENDED</span>",
+"<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
+described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
+appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-2">The following terms are used in this document:<a href="#section-2-2" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-2-3">
+        <dt id="section-2-3.1">Context Identifier (CID):</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.2">
+          <p id="section-2-3.2.1">A numeric identifier associated with a specific packet reconstruction and processing behavior. A CONNECT-IP tunnel can maintain multiple CIDs in each direction. Context ID 0 always represents transmission of complete, unoptimised IP packets as defined in <span><a href="https://rfc-editor.org/rfc/rfc9484#section-5" class="relref">Section 5</a> of [<a href="#CONNECT-IP" class="cite xref">CONNECT-IP</a>]</span>.<a href="#section-2-3.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-3.3">Template:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.4">
+          <p id="section-2-3.4.1">A reusable packet layout consisting of a sequence of static and variable segments. Static segments contain bytes omitted from optimized datagrams, while variable segments correspond to bytes still carried in the datagram payload.<a href="#section-2-3.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-3.5">Checksum Offload:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.6">
+          <p id="section-2-3.6.1">A capability allowing the receiver to compute and finalize the Internet checksum according to <span>[<a href="#INCREMENTAL-CHECKSUM" class="cite xref">INCREMENTAL-CHECKSUM</a>]</span> for the reconstructed packet, based on two offsets: <code>Checksum Field Offset</code> and <code>Checksum Start Offset</code>.<a href="#section-2-3.6.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-3.7">Capsule:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.8">
+          <p id="section-2-3.8.1">A reliable control-stream message, as defined in <span><a href="https://rfc-editor.org/rfc/rfc9297#section-3" class="relref">Section 3</a> of [<a href="#HTTP-DATAGRAMS" class="cite xref">HTTP-DATAGRAMS</a>]</span>, used in this specification to signal creation or deletion of Context Identifiers and their associated templates.<a href="#section-2-3.8.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="negotiation">
+<section id="section-3">
+      <h2 id="name-negotiation-of-capabilities">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-negotiation-of-capabilities" class="section-name selfRef">Negotiation of Capabilities</a>
+      </h2>
+<p id="section-3-1">Endpoints negotiate support for these optimizations when establishing a CONNECT-IP tunnel by using a <code>connect-ip-optimizations</code> HTTP header field, whose value is a Structured Field Dictionary as defined in <span><a href="https://rfc-editor.org/rfc/rfc8941#section-3.2" class="relref">Section 3.2</a> of [<a href="#STRUCTURED-HTTP" class="cite xref">STRUCTURED-HTTP</a>]</span>.<a href="#section-3-1" class="pilcrow">¶</a></p>
+<div id="header-definition">
+<section id="section-3.1">
+        <h3 id="name-header-definition">
+<a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-header-definition" class="section-name selfRef">Header Definition</a>
+        </h3>
+<span id="name-connect-ip-optimizations-he"></span><div id="fig-connect-ip-optimizations-header">
+<figure id="figure-1">
+          <div class="alignLeft art-text artwork" id="section-3.1-1.1">
+<pre>
+connect-ip-optimizations = sf-dictionary
+</pre>
+</div>
+<figcaption><a href="#figure-1" class="selfRef">Figure 1</a>:
+<a href="#name-connect-ip-optimizations-he" class="selfRef">Connect-ip-optimizations header field</a>
+          </figcaption></figure>
+</div>
+<p id="section-3.1-2">This document defines the following optional dictionary keys:<a href="#section-3.1-2" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-3.1-3">
+          <dt id="section-3.1-3.1">
+<code>templates</code> (sf-interger):</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-3.2">
+            <p id="section-3.1-3.2.1">Indicates support for reusable templates and specifies the maximum number of templates that the sender is willing to maintain for templates received from the peer. A positive integer value indicates full support for reusable templates, and the value represents an upper bound on the number of concurrently active templates that can be created by the peer. A value of 0 indicates that the sender supports reusable templates only for its own transmissions but does not accept templates created by the peer. If this member is omitted, reusable templates are not supported in either direction.<a href="#section-3.1-3.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-3.1-3.3">
+<code>checksum</code> (sf-boolean):</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-3.4">
+            <p id="section-3.1-3.4.1">Indicates support for checksum offload semantics. A value of <code>?1</code> means that checksum offload is supported in both directions. A value of <code>?0</code> means that checksum offload may be used for packets sent by this endpoint but not for packets received from the peer. If this member is omitted, checksum offload is not supported in either direction.<a href="#section-3.1-3.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<p id="section-3.1-4">Endpoints <span class="bcp14">MUST</span> ignore unknown dictionary members. The absence of a member implies that the corresponding capability is not supported by the sender.<a href="#section-3.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="negotiation-behavior">
+<section id="section-3.2">
+        <h3 id="name-negotiation-behavior">
+<a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-negotiation-behavior" class="section-name selfRef">Negotiation Behavior</a>
+        </h3>
+<p id="section-3.2-1">If both peers indicate support for templates (that is, <code>templates</code> member is present and non-zero in both directions), either endpoint <span class="bcp14">MAY</span> create and delete Context Identifiers and their templates using capsules as described in <a href="#capsules" class="auto internal xref">Section 4</a>.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
+<p id="section-3.2-2">If both peers indicate support for checksum offload (that is, <code>checksum=?1</code> in both directions), either endpoint <span class="bcp14">MAY</span> install checksum offload parameters for specific Context Identifiers using capsules as described in <a href="#optimization-create" class="auto internal xref">Section 4.2</a>.<a href="#section-3.2-2" class="pilcrow">¶</a></p>
+<p id="section-3.2-3">Peers of endpoints that advertise support in only one direction (for example, <code>checksum=?0</code> or <code>templates=0</code>) <span class="bcp14">MUST NOT</span> send capsules that would require those endpoints to maintain state for the corresponding capability.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
+<p id="section-3.2-4">Capabilities that were not successfully negotiated <span class="bcp14">MUST NOT</span> be used within the tunnel.<a href="#section-3.2-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="example">
+<section id="section-3.3">
+        <h3 id="name-example">
+<a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-example" class="section-name selfRef">Example</a>
+        </h3>
+<p id="section-3.3-1">HTTP/3 sample request (client to proxy):<a href="#section-3.3-1" class="pilcrow">¶</a></p>
+<span id="name-connect-ip-with-connect-ip-"></span><div id="fig-connect-ip-optimizations-request-example">
+<figure id="figure-2">
+          <div class="alignLeft art-text artwork" id="section-3.3-2.1">
+<pre>
+:method = CONNECT
+:protocol = connect-ip
+:scheme = https
+:path = /.well-known/masque/ip/*/*/
+:authority = proxy.example.net
+capsule-protocol = ?1
+connect-ip-optimizations = templates=20000, checksum=?1
+</pre>
+</div>
+<figcaption><a href="#figure-2" class="selfRef">Figure 2</a>:
+<a href="#name-connect-ip-with-connect-ip-" class="selfRef">CONNECT-IP with connect-ip-optimizations request example</a>
+          </figcaption></figure>
+</div>
+<p id="section-3.3-3">HTTP/3 sample response (proxy to client):<a href="#section-3.3-3" class="pilcrow">¶</a></p>
+<span id="name-connect-ip-with-connect-ip-o"></span><div id="fig-connect-ip-optimizations-response-example">
+<figure id="figure-3">
+          <div class="alignLeft art-text artwork" id="section-3.3-4.1">
+<pre>
+:status = 200
+capsule-protocol = ?1
+connect-ip-optimizations = templates=65535, checksum=?0
+</pre>
+</div>
+<figcaption><a href="#figure-3" class="selfRef">Figure 3</a>:
+<a href="#name-connect-ip-with-connect-ip-o" class="selfRef">CONNECT-IP with connect-ip-optimizations response example</a>
+          </figcaption></figure>
+</div>
+<p id="section-3.3-5">In this example, both peers support reusable templates, and checksum offload is supported only for packets sent from the proxy to the client.<a href="#section-3.3-5" class="pilcrow">¶</a></p>
+<p id="section-3.3-6">After this exchange, both endpoints may define Context Identifiers and associated templates and/or checksum parameters using capsules on the reliable control stream.<a href="#section-3.3-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="capsules">
+<section id="section-4">
+      <h2 id="name-optimization-capsules">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-optimization-capsules" class="section-name selfRef">Optimization capsules</a>
+      </h2>
+<p id="section-4-1">This specification defines two capsule types:<a href="#section-4-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-4-2">
+        <dt id="section-4-2.1">CONNECT_IP_OPTIMIZATION_CREATE (capsule type 0x1a768469):</dt>
+        <dd style="margin-left: 1.5em" id="section-4-2.2">
+          <p id="section-4-2.2.1">Creates an immutable optimization context bound to a Context ID.<a href="#section-4-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-4-2.3">CONNECT_IP_OPTIMIZATION_DELETE (capsule type 0x1a76846a):</dt>
+        <dd style="margin-left: 1.5em" id="section-4-2.4">
+          <p id="section-4-2.4.1">Retires a CID.<a href="#section-4-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+<p id="section-4-3">All capsules are sent on the reliable control stream of the CONNECT-IP tunnel.<a href="#section-4-3" class="pilcrow">¶</a></p>
+<div id="context-id-allocation">
+<section id="section-4.1">
+        <h3 id="name-context-id-allocation">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-context-id-allocation" class="section-name selfRef">Context ID allocation</a>
+        </h3>
+<p id="section-4.1-1">The Context ID carried in these capsules is encoded as a QUIC variable-length integer defined in <span><a href="https://rfc-editor.org/rfc/rfc9000#section-16" class="relref">Section 16</a> of [<a href="#QUIC" class="cite xref">QUIC</a>]</span>. Even-numbered CIDs are allocated by the client, and odd-numbered CIDs are allocated by the proxy, consistent with <span><a href="https://rfc-editor.org/rfc/rfc9298#section-4" class="relref">Section 4</a> of [<a href="#CONNECT-UDP" class="cite xref">CONNECT-UDP</a>]</span>. CID 0 is reserved for unoptimized raw packets and <span class="bcp14">MUST NOT</span> appear in these capsules.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="optimization-create">
+<section id="section-4.2">
+        <h3 id="name-connect_ip_optimization_cre">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-connect_ip_optimization_cre" class="section-name selfRef">CONNECT_IP_OPTIMIZATION_CREATE capsule</a>
+        </h3>
+<p id="section-4.2-1">CONNECT_IP_OPTIMIZATION_CREATE capsule is used to create a new, immutable optimization context for the indicated CID.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<span id="name-connect_ip_optimization_crea"></span><div id="fig-optimization-create-capsule">
+<figure id="figure-4">
+          <div class="alignLeft art-text artwork" id="section-4.2-2.1">
+<pre>
+CONNECT_IP_OPTIMIZATION_CREATE Capsule {
+  Type (i) = 0x1a768469,
+  Length (i),
+  Context ID (i),
+  Static Segments Length (i),
+  Static Segment (..) ...,
+  Checksum Field Offset (i)?,
+  Checksum Start Offset (i)?,
+}
+</pre>
+</div>
+<figcaption><a href="#figure-4" class="selfRef">Figure 4</a>:
+<a href="#name-connect_ip_optimization_crea" class="selfRef">CONNECT_IP_OPTIMIZATION_CREATE Capsule Format</a>
+          </figcaption></figure>
+</div>
+<p id="section-4.2-3">CONNECT_IP_OPTIMIZATION_CREATE capsule contains the following fields:<a href="#section-4.2-3" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-4.2-4">
+          <dt id="section-4.2-4.1">Context ID:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.2-4.2">
+            <p id="section-4.2-4.2.1">Context Identifier, encoded as a variable-length integer, defined by this capsule.<a href="#section-4.2-4.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.2-4.3">Static Segments Length:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.2-4.4">
+            <p id="section-4.2-4.4.1">Aggregate length in bytes of all subsequent Static Segments. A value of 0 indicates that no template is used (that is, the payload of datagrams for the given Context ID contains a full reconstructed packet, modulo checksum finishing if configured).<a href="#section-4.2-4.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.2-4.5">Checksum Field Offset:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.2-4.6">
+            <p id="section-4.2-4.6.1">An optional field, encoded as a variable-length integer, containing byte offset of the 16-bit Internet checksum field within the reconstructed packet. This field is omitted if checksum offload is not used.<a href="#section-4.2-4.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.2-4.7">Checksum Start Offset:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.2-4.8">
+            <p id="section-4.2-4.8.1">An optional field, encoded as a variable-length integer, containing byte offset where checksum coverage begins. Coverage runs from this offset to the end of the reconstructed packet. Not included in the capsule if checksum offloading is not used.<a href="#section-4.2-4.8.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<p id="section-4.2-5">The CONNECT_IP_OPTIMIZATION_CREATE capsule contains a sequence of zero or more Static Segments.<a href="#section-4.2-5" class="pilcrow">¶</a></p>
+<span id="name-static-segment-format"></span><div id="fig-static-segment">
+<figure id="figure-5">
+          <div class="alignLeft art-text artwork" id="section-4.2-6.1">
+<pre>
+Static Segment {
+  Segment Offset (i),
+  Segment Length (i),
+  Segment Payload (..),
+}
+</pre>
+</div>
+<figcaption><a href="#figure-5" class="selfRef">Figure 5</a>:
+<a href="#name-static-segment-format" class="selfRef">Static Segment Format</a>
+          </figcaption></figure>
+</div>
+<p id="section-4.2-7">Each Static Segment contains following fields:<a href="#section-4.2-7" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-4.2-8">
+          <dt id="section-4.2-8.1">Segment Offset:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.2-8.2">
+            <p id="section-4.2-8.2.1">Byte offset from the start of the reconstructed packet, encoded as a variable-length integer<a href="#section-4.2-8.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.2-8.3">Segment Length:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.2-8.4">
+            <p id="section-4.2-8.4.1">Number of bytes in this static segment, encoded as a variable-length integer<a href="#section-4.2-8.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.2-8.5">Segment Payload:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.2-8.6">
+            <p id="section-4.2-8.6.1">the static bytes to insert at the Segment Offset<a href="#section-4.2-8.6.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<div id="parsing-and-validation">
+<section id="section-4.2.1">
+          <h4 id="name-parsing-and-validation">
+<a href="#section-4.2.1" class="section-number selfRef">4.2.1. </a><a href="#name-parsing-and-validation" class="section-name selfRef">Parsing and validation</a>
+          </h4>
+<p id="section-4.2.1-1">The receiver parses an CONNECT_IP_OPTIMIZATION_CREATE capsule by reading, in order: the Context ID, the Static Segments Length, zero or more static segments whose encodings consume exactly Static Segments Length bytes, and then two checksum offsets if they are present.<a href="#section-4.2.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.2.1-2">The Context ID <span class="bcp14">MUST</span> be non-zero, even-numbered when created by the client, and odd-numbered when created by the proxy. The Context ID <span class="bcp14">MUST NOT</span> have been used previously. Static Segments Length is the total size, in bytes, of the static segments section including each Segmenet Offset, Segment Length, and Segment Payload.<a href="#section-4.2.1-2" class="pilcrow">¶</a></p>
+<p id="section-4.2.1-3">Each Static Segment consists of a Segment Offset, a Segment Length, and exactly Segment Length octets of Segment Payload. Static segments <span class="bcp14">MUST</span> appear in strictly increasing Segment Offset order and <span class="bcp14">MUST NOT</span> overlap.<a href="#section-4.2.1-3" class="pilcrow">¶</a></p>
+<p id="section-4.2.1-4">After Static Segments Length bytes have been consumed, the capsule either ends immediately or contains exactly two additional fields: Checksum Field Offset followed by Checksum Start Offset. If only one variable-length integer is present, or if any bytes remain after the two length integers, the capsule is malformed.<a href="#section-4.2.1-4" class="pilcrow">¶</a></p>
+<p id="section-4.2.1-5">A receiver that did not negotiate acceptance of checksum offload in its direction as defined in <a href="#negotiation" class="auto internal xref">Section 3</a> <span class="bcp14">MUST</span> treat an CONNECT_IP_OPTIMIZATION_CREATE capsule that includes checksum offsets as an error and <span class="bcp14">MUST</span> follow the error-handling procedure in <span><a href="https://rfc-editor.org/rfc/rfc9297#section-3.3" class="relref">Section 3.3</a> of [<a href="#HTTP-DATAGRAMS" class="cite xref">HTTP-DATAGRAMS</a>]</span>. A receiver that has already accepted the maximum number of templates it advertised via the templates member of <code>connect-ip-optimizations</code> <span class="bcp14">MUST</span> treat any additional CONNECT_IP_OPTIMIZATION_CREATE capsule containing a template (that is, with Static Segments Length &gt; 0) as an error and <span class="bcp14">MUST</span> follow the same error-handling procedure.<a href="#section-4.2.1-5" class="pilcrow">¶</a></p>
+<p id="section-4.2.1-6">If any of the capsule fields are malformed upon reception, the receiver of the capsule <span class="bcp14">MUST</span> follow the error-handling procedure defined in <span><a href="https://rfc-editor.org/rfc/rfc9297#section-3.3" class="relref">Section 3.3</a> of [<a href="#HTTP-DATAGRAMS" class="cite xref">HTTP-DATAGRAMS</a>]</span>.<a href="#section-4.2.1-6" class="pilcrow">¶</a></p>
+<p id="section-4.2.1-7">Per-packet validation uses the reconstruction procedure described in <a href="#reconstruction" class="auto internal xref">Section 5.2</a>.<a href="#section-4.2.1-7" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="connectipoptimizationdelete-capsule">
+<section id="section-4.3">
+        <h3 id="name-connect_ip_optimization_del">
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-connect_ip_optimization_del" class="section-name selfRef">CONNECT_IP_OPTIMIZATION_DELETE capsule</a>
+        </h3>
+<p id="section-4.3-1">CONNECT_IP_OPTIMIZATION_DELETE capsule is used to indicate that a Context ID previously defined by CONNECT_IP_OPTIMIZATION_CREATE capsule will no longer be used.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<span id="name-connect_ip_optimization_dele"></span><div id="fig-optimization-delete-capsule">
+<figure id="figure-6">
+          <div class="alignLeft art-text artwork" id="section-4.3-2.1">
+<pre>
+CONNECT_IP_OPTIMIZATION_DELETE Capsule {
+  Type (i) = 0x1a76846a,
+  Length (i),
+  Context ID (i),
+}
+</pre>
+</div>
+<figcaption><a href="#figure-6" class="selfRef">Figure 6</a>:
+<a href="#name-connect_ip_optimization_dele" class="selfRef">CONNECT_IP_OPTIMIZATION_DELETE Capsule Format</a>
+          </figcaption></figure>
+</div>
+<p id="section-4.3-3">After sending an CONNECT_IP_OPTIMIZATION_DELETE Capsule, the sender <span class="bcp14">MUST NOT</span> use the Context ID. Upon receipt, the peer retires the indicated context and releases any negotiated template budget consumed by that context if, and only if, the retired context included a template (that is, its CONNECT_IP_OPTIMIZATION_CREATE had a non-zero Static Segments Length). Retiring a context that had no template (for example, checksum-only) does not affect the template budget.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
+<p id="section-4.3-4">If an CONNECT_IP_OPTIMIZATION_DELETE capsule is received for a Context ID that was not previously and correctly defined by an CONNECT_IP_OPTIMIZATION_CREATE capsule from the peer, the receiver <span class="bcp14">MUST</span> follow the error-handling procedure defined in <span><a href="https://rfc-editor.org/rfc/rfc9297#section-3.3" class="relref">Section 3.3</a> of [<a href="#HTTP-DATAGRAMS" class="cite xref">HTTP-DATAGRAMS</a>]</span>.<a href="#section-4.3-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="optimized-datagram-operation">
+<section id="section-5">
+      <h2 id="name-optimized-datagram-operatio">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-optimized-datagram-operatio" class="section-name selfRef">Optimized Datagram Operation</a>
+      </h2>
+<p id="section-5-1">This section defines how endpoints construct and consume datagrams once a Context ID has been created with CONNECT_IP_OPTIMIZATION_CREATE capsule.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<div id="sender-behavior">
+<section id="section-5.1">
+        <h3 id="name-sender-behavior">
+<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-sender-behavior" class="section-name selfRef">Sender behavior</a>
+        </h3>
+<p id="section-5.1-1">For each packet sent under a Context ID, the sender constructs the datagram payload according to the context's template. If the context has no template (that is, Static Segments Length is 0), the payload <span class="bcp14">MUST</span> be a complete reconstructed packet. If the context has a template, the payload <span class="bcp14">MUST</span> be the concatenation of all variable byte ranges, taken in strictly increasing offset order, corresponding to the gaps not covered by static segments starting at offset 0.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.1-2">When checksum offload is configured (that is, the context includes Checksum Field Offset and Checksum Start Offset), the sender <span class="bcp14">MUST</span> set the checksum field in the reconstructed packet image to the 16-bit one’s-complement sum of the appropriate pseudo-header before transmission. The two bytes at Checksum Field Offset in the reconstructed image therefore <span class="bcp14">MUST</span> contain this pseudo-header sum; these bytes originates from static bytes in the template as well as from variable bytes in the payload. The final reconstructed image <span class="bcp14">MUST</span> contain the correct preseeding value.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
+<p id="section-5.1-3">A sender uses Context ID 0 for any one-off packet that does not fit an existing context (for example, a transient change in header layout).<a href="#section-5.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="reconstruction">
+<section id="section-5.2">
+        <h3 id="name-receiver-behavior">
+<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-receiver-behavior" class="section-name selfRef">Receiver behavior</a>
+        </h3>
+<p id="section-5.2-1">A datagram that arrives with a non-zero Context ID that has not been previously and correctly defined by an CONNECT_IP_OPTIMIZATION_CREATE capsule from the peer <span class="bcp14">MUST</span> be dropped.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+<p id="section-5.2-2">If the CID has no template (that is, Static Segments Length is 0), the datagram payload is the complete reconstructed packet. If the CID has a template, the receiver reconstructs the packet from offset 0 upward by writing static bytes at their declared offsets and filling all remaining byte positions with bytes consumed from the datagram payload in strictly increasing offset order. Reconstruction continues until all payload bytes have been consumed. If the payload is exhausted before the offset of the last static segment have been filled, the packet <span class="bcp14">MUST</span> be dropped.<a href="#section-5.2-2" class="pilcrow">¶</a></p>
+<p id="section-5.2-3">When Checksum Field Offset and Checksum Start Offset are present for the CID, the receiver finishes the Internet checksum as follows: it computes the checksum over the byte range starting at Checksum Start Offset and ending at the reconstructed packet length while treating the checksum field as zero during the sum; it then adds (folds) the 16-bit value currently at Checksum Field Offset, performs end-around carry, and writes the final one's-complement result back at Checksum Field Offset. If either checksum offset is greater than or equal to the reconstructed packet length for this packet, the packet <span class="bcp14">MUST</span> be dropped.<a href="#section-5.2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="examples">
+<section id="section-6">
+      <h2 id="name-examples">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-examples" class="section-name selfRef">Examples</a>
+      </h2>
+<p id="section-6-1">This section illustrates how contexts are created and how senders form compact payloads. All offsets and lengths are in bits in the packet diagrams and field tables. All offsets and lengths are in bytes in segment tables and sample capsules.<a href="#section-6-1" class="pilcrow">¶</a></p>
+<div id="tcp-over-ipv6-with-template-and-checksum-offload">
+<section id="section-6.1">
+        <h3 id="name-tcp-over-ipv6-with-template">
+<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-tcp-over-ipv6-with-template" class="section-name selfRef">TCP over IPv6 with template and checksum offload</a>
+        </h3>
+<p id="section-6.1-1">Original sample <span>[<a href="#TCP" class="cite xref">TCP</a>]</span> over <span>[<a href="#IPv6" class="cite xref">IPv6</a>]</span> packet layout is illustrated below. In addition to basic IPv6 and TCP headers it contains Timestamp option as defined in <span><a href="https://rfc-editor.org/rfc/rfc7323#section-3" class="relref">Section 3</a> of [<a href="#TCP-PERF" class="cite xref">TCP-PERF</a>]</span>.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+<span id="name-example-tcp-over-ipv6-packe"></span><div id="original-tcp-ipv6">
+<figure id="figure-7">
+          <div id="section-6.1-2.1">
+            <div class="alignLeft art-svg artwork" id="section-6.1-2.1.1">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="704" width="576" viewBox="0 0 576 704" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
+                <path d="M 8,32 L 8,688" fill="none" stroke="black"></path>
+                <path d="M 80,48 L 80,96" fill="none" stroke="black"></path>
+                <path d="M 80,448 L 80,496" fill="none" stroke="black"></path>
+                <path d="M 144,32 L 144,48" fill="none" stroke="black"></path>
+                <path d="M 144,544 L 144,592" fill="none" stroke="black"></path>
+                <path d="M 208,48 L 208,96" fill="none" stroke="black"></path>
+                <path d="M 280,32 L 280,48" fill="none" stroke="black"></path>
+                <path d="M 280,96 L 280,144" fill="none" stroke="black"></path>
+                <path d="M 280,304 L 280,352" fill="none" stroke="black"></path>
+                <path d="M 280,448 L 280,592" fill="none" stroke="black"></path>
+                <path d="M 416,32 L 416,48" fill="none" stroke="black"></path>
+                <path d="M 416,96 L 416,144" fill="none" stroke="black"></path>
+                <path d="M 416,544 L 416,592" fill="none" stroke="black"></path>
+                <path d="M 552,32 L 552,688" fill="none" stroke="black"></path>
+                <path d="M 568,64 L 568,96" fill="none" stroke="black"></path>
+                <path d="M 568,256 L 568,288" fill="none" stroke="black"></path>
+                <path d="M 568,320 L 568,400" fill="none" stroke="black"></path>
+                <path d="M 568,576 L 568,672" fill="none" stroke="black"></path>
+                <path d="M 8,48 L 552,48" fill="none" stroke="black"></path>
+                <path d="M 8,96 L 552,96" fill="none" stroke="black"></path>
+                <path d="M 8,144 L 552,144" fill="none" stroke="black"></path>
+                <path d="M 8,224 L 552,224" fill="none" stroke="black"></path>
+                <path d="M 8,304 L 552,304" fill="none" stroke="black"></path>
+                <path d="M 8,352 L 552,352" fill="none" stroke="black"></path>
+                <path d="M 8,400 L 552,400" fill="none" stroke="black"></path>
+                <path d="M 8,448 L 552,448" fill="none" stroke="black"></path>
+                <path d="M 8,496 L 552,496" fill="none" stroke="black"></path>
+                <path d="M 8,544 L 552,544" fill="none" stroke="black"></path>
+                <path d="M 8,592 L 552,592" fill="none" stroke="black"></path>
+                <path d="M 8,640 L 552,640" fill="none" stroke="black"></path>
+                <path d="M 8,688 L 552,688" fill="none" stroke="black"></path>
+                <polygon class="arrowhead" points="576,672 564,666.4 564,677.6" fill="black" transform="rotate(90,568,672)"></polygon>
+                <polygon class="arrowhead" points="576,320 564,314.4 564,325.6" fill="black" transform="rotate(270,568,320)"></polygon>
+                <polygon class="arrowhead" points="576,288 564,282.4 564,293.6" fill="black" transform="rotate(90,568,288)"></polygon>
+                <polygon class="arrowhead" points="576,64 564,58.4 564,69.6" fill="black" transform="rotate(270,568,64)"></polygon>
+                <g class="text">
+                  <text x="16" y="36">0</text>
+                  <text x="136" y="36">7</text>
+                  <text x="152" y="36">8</text>
+                  <text x="268" y="36">15</text>
+                  <text x="292" y="36">16</text>
+                  <text x="404" y="36">23</text>
+                  <text x="428" y="36">16</text>
+                  <text x="540" y="36">31</text>
+                  <text x="16" y="68">0</text>
+                  <text x="32" y="68">1</text>
+                  <text x="48" y="68">1</text>
+                  <text x="64" y="68">0</text>
+                  <text x="140" y="68">0x00</text>
+                  <text x="376" y="68">0x4bcde</text>
+                  <text x="40" y="84">Version</text>
+                  <text x="120" y="84">Traffic</text>
+                  <text x="176" y="84">Class</text>
+                  <text x="348" y="84">Flow</text>
+                  <text x="392" y="84">Label</text>
+                  <text x="140" y="116">0x0020</text>
+                  <text x="348" y="116">0x06</text>
+                  <text x="484" y="116">0x79</text>
+                  <text x="568" y="116">I</text>
+                  <text x="112" y="132">Payload</text>
+                  <text x="172" y="132">length</text>
+                  <text x="316" y="132">Next</text>
+                  <text x="364" y="132">header</text>
+                  <text x="456" y="132">Hop</text>
+                  <text x="496" y="132">limit</text>
+                  <text x="568" y="132">P</text>
+                  <text x="568" y="164">H</text>
+                  <text x="280" y="180">2001:0db8:85a3:0000:0000:8a2e:0370:7334</text>
+                  <text x="568" y="180">E</text>
+                  <text x="244" y="196">Source</text>
+                  <text x="304" y="196">Address</text>
+                  <text x="568" y="196">A</text>
+                  <text x="568" y="212">D</text>
+                  <text x="568" y="228">E</text>
+                  <text x="568" y="244">R</text>
+                  <text x="280" y="260">2001:0db8:a42b:0000:0000:7c3a:143a:1529</text>
+                  <text x="240" y="276">Destination</text>
+                  <text x="320" y="276">Address</text>
+                  <text x="140" y="324">0x0050</text>
+                  <text x="412" y="324">0xd475</text>
+                  <text x="124" y="340">Source</text>
+                  <text x="172" y="340">port</text>
+                  <text x="392" y="340">Destination</text>
+                  <text x="460" y="340">port</text>
+                  <text x="276" y="372">0x6caa4bd7</text>
+                  <text x="252" y="388">Sequence</text>
+                  <text x="316" y="388">number</text>
+                  <text x="276" y="420">0x9b16794e</text>
+                  <text x="568" y="420">T</text>
+                  <text x="252" y="436">Acknowledgment</text>
+                  <text x="340" y="436">number</text>
+                  <text x="568" y="436">C</text>
+                  <text x="568" y="452">P</text>
+                  <text x="16" y="468">1</text>
+                  <text x="32" y="468">0</text>
+                  <text x="48" y="468">0</text>
+                  <text x="64" y="468">0</text>
+                  <text x="88" y="468">0</text>
+                  <text x="104" y="468">0</text>
+                  <text x="120" y="468">0</text>
+                  <text x="136" y="468">0</text>
+                  <text x="152" y="468">0</text>
+                  <text x="168" y="468">0</text>
+                  <text x="184" y="468">0</text>
+                  <text x="200" y="468">1</text>
+                  <text x="216" y="468">0</text>
+                  <text x="232" y="468">0</text>
+                  <text x="248" y="468">0</text>
+                  <text x="264" y="468">0</text>
+                  <text x="412" y="468">0x041e</text>
+                  <text x="24" y="484">Hdr</text>
+                  <text x="56" y="484">Len</text>
+                  <text x="152" y="484">TCP</text>
+                  <text x="192" y="484">Flags</text>
+                  <text x="412" y="484">Window</text>
+                  <text x="568" y="484">H</text>
+                  <text x="568" y="500">E</text>
+                  <text x="140" y="516">0x8f6b</text>
+                  <text x="412" y="516">0x0000</text>
+                  <text x="568" y="516">A</text>
+                  <text x="140" y="532">Checksum</text>
+                  <text x="380" y="532">Urgent</text>
+                  <text x="440" y="532">Pointer</text>
+                  <text x="568" y="532">D</text>
+                  <text x="568" y="548">E</text>
+                  <text x="76" y="564">0x01</text>
+                  <text x="212" y="564">0x01</text>
+                  <text x="348" y="564">0x08</text>
+                  <text x="484" y="564">0x0a</text>
+                  <text x="568" y="564">R</text>
+                  <text x="48" y="580">No-Op</text>
+                  <text x="100" y="580">Option</text>
+                  <text x="184" y="580">No-Op</text>
+                  <text x="236" y="580">Option</text>
+                  <text x="320" y="580">TimeStamp</text>
+                  <text x="388" y="580">Option</text>
+                  <text x="484" y="580">Length</text>
+                  <text x="276" y="612">0x119a5db3</text>
+                  <text x="256" y="628">Timestamp</text>
+                  <text x="320" y="628">value</text>
+                  <text x="276" y="660">0xd9b4d48d</text>
+                  <text x="232" y="676">Timestamp</text>
+                  <text x="292" y="676">echo</text>
+                  <text x="336" y="676">reply</text>
+                </g>
+              </svg><a href="#section-6.1-2.1.1" class="pilcrow">¶</a>
+</div>
+</div>
+<figcaption><a href="#figure-7" class="selfRef">Figure 7</a>:
+<a href="#name-example-tcp-over-ipv6-packe" class="selfRef">Example TCP over IPv6 packet before optimization</a>
+          </figcaption></figure>
+</div>
+<p id="section-6.1-3">Table below illustrates fields present in IPv6 and TCP headers, their offsets in bits from the beginning of the packet and whether they are likely to be static for most packets of a given traffic flow<a href="#section-6.1-3" class="pilcrow">¶</a></p>
+<span id="name-ipv6-and-tcp-header-fields-"></span><div id="ipv6-tcp-fields">
+<table class="center" id="table-1">
+          <caption>
+<a href="#table-1" class="selfRef">Table 1</a>:
+<a href="#name-ipv6-and-tcp-header-fields-" class="selfRef">IPv6 and TCP header fields in example packet</a>
+          </caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Offset</th>
+              <th class="text-left" rowspan="1" colspan="1">Field name</th>
+              <th class="text-left" rowspan="1" colspan="1">Length</th>
+              <th class="text-left" rowspan="1" colspan="1">Value</th>
+              <th class="text-left" rowspan="1" colspan="1">Static</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0</td>
+              <td class="text-left" rowspan="1" colspan="1">Version</td>
+              <td class="text-left" rowspan="1" colspan="1">4</td>
+              <td class="text-left" rowspan="1" colspan="1">0110b</td>
+              <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">4</td>
+              <td class="text-left" rowspan="1" colspan="1">Traffic Class</td>
+              <td class="text-left" rowspan="1" colspan="1">8</td>
+              <td class="text-left" rowspan="1" colspan="1">0x00</td>
+              <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">12</td>
+              <td class="text-left" rowspan="1" colspan="1">Flow label</td>
+              <td class="text-left" rowspan="1" colspan="1">20</td>
+              <td class="text-left" rowspan="1" colspan="1">0x4bcde</td>
+              <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">32</td>
+              <td class="text-left" rowspan="1" colspan="1">Payload length</td>
+              <td class="text-left" rowspan="1" colspan="1">16</td>
+              <td class="text-left" rowspan="1" colspan="1">0x0020</td>
+              <td class="text-left" rowspan="1" colspan="1">No</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">48</td>
+              <td class="text-left" rowspan="1" colspan="1">Next header</td>
+              <td class="text-left" rowspan="1" colspan="1">8</td>
+              <td class="text-left" rowspan="1" colspan="1">0x06</td>
+              <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">56</td>
+              <td class="text-left" rowspan="1" colspan="1">Hop limit</td>
+              <td class="text-left" rowspan="1" colspan="1">8</td>
+              <td class="text-left" rowspan="1" colspan="1">0x79</td>
+              <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">64</td>
+              <td class="text-left" rowspan="1" colspan="1">Source address</td>
+              <td class="text-left" rowspan="1" colspan="1">128</td>
+              <td class="text-left" rowspan="1" colspan="1">2001:0db8:85a3::8a2e:0370:7334</td>
+              <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">192</td>
+              <td class="text-left" rowspan="1" colspan="1">Destination address</td>
+              <td class="text-left" rowspan="1" colspan="1">128</td>
+              <td class="text-left" rowspan="1" colspan="1">2001:0db8:a42b::7c3a:143a:1529</td>
+              <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">320</td>
+              <td class="text-left" rowspan="1" colspan="1">Source port</td>
+              <td class="text-left" rowspan="1" colspan="1">16</td>
+              <td class="text-left" rowspan="1" colspan="1">0x0050</td>
+              <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">336</td>
+              <td class="text-left" rowspan="1" colspan="1">Destination port</td>
+              <td class="text-left" rowspan="1" colspan="1">16</td>
+              <td class="text-left" rowspan="1" colspan="1">0xd475</td>
+              <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">352</td>
+              <td class="text-left" rowspan="1" colspan="1">Sequence number</td>
+              <td class="text-left" rowspan="1" colspan="1">32</td>
+              <td class="text-left" rowspan="1" colspan="1">0x6caa4bd7</td>
+              <td class="text-left" rowspan="1" colspan="1">No</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">384</td>
+              <td class="text-left" rowspan="1" colspan="1">Acknowledgement number</td>
+              <td class="text-left" rowspan="1" colspan="1">32</td>
+              <td class="text-left" rowspan="1" colspan="1">0x9b16794e</td>
+              <td class="text-left" rowspan="1" colspan="1">No</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">416</td>
+              <td class="text-left" rowspan="1" colspan="1">TCP header length</td>
+              <td class="text-left" rowspan="1" colspan="1">4</td>
+              <td class="text-left" rowspan="1" colspan="1">1000b</td>
+              <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">420</td>
+              <td class="text-left" rowspan="1" colspan="1">TCP Flags</td>
+              <td class="text-left" rowspan="1" colspan="1">12</td>
+              <td class="text-left" rowspan="1" colspan="1">000000010000b</td>
+              <td class="text-left" rowspan="1" colspan="1">No</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">432</td>
+              <td class="text-left" rowspan="1" colspan="1">Window</td>
+              <td class="text-left" rowspan="1" colspan="1">16</td>
+              <td class="text-left" rowspan="1" colspan="1">0x041e</td>
+              <td class="text-left" rowspan="1" colspan="1">No</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">448</td>
+              <td class="text-left" rowspan="1" colspan="1">Checksum</td>
+              <td class="text-left" rowspan="1" colspan="1">16</td>
+              <td class="text-left" rowspan="1" colspan="1">0x8f6b</td>
+              <td class="text-left" rowspan="1" colspan="1">No</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">464</td>
+              <td class="text-left" rowspan="1" colspan="1">Urgent pointer</td>
+              <td class="text-left" rowspan="1" colspan="1">16</td>
+              <td class="text-left" rowspan="1" colspan="1">0x0000</td>
+              <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">480</td>
+              <td class="text-left" rowspan="1" colspan="1">No-Op option</td>
+              <td class="text-left" rowspan="1" colspan="1">8</td>
+              <td class="text-left" rowspan="1" colspan="1">0x01</td>
+              <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">488</td>
+              <td class="text-left" rowspan="1" colspan="1">No-Op option</td>
+              <td class="text-left" rowspan="1" colspan="1">8</td>
+              <td class="text-left" rowspan="1" colspan="1">0x01</td>
+              <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">496</td>
+              <td class="text-left" rowspan="1" colspan="1">Timestamp option</td>
+              <td class="text-left" rowspan="1" colspan="1">8</td>
+              <td class="text-left" rowspan="1" colspan="1">0x08</td>
+              <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">504</td>
+              <td class="text-left" rowspan="1" colspan="1">Timestamp option length</td>
+              <td class="text-left" rowspan="1" colspan="1">8</td>
+              <td class="text-left" rowspan="1" colspan="1">0x0a</td>
+              <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">512</td>
+              <td class="text-left" rowspan="1" colspan="1">Timestamp value</td>
+              <td class="text-left" rowspan="1" colspan="1">32</td>
+              <td class="text-left" rowspan="1" colspan="1">0x119a5db3</td>
+              <td class="text-left" rowspan="1" colspan="1">No</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">544</td>
+              <td class="text-left" rowspan="1" colspan="1">Timestamp echo reply</td>
+              <td class="text-left" rowspan="1" colspan="1">32</td>
+              <td class="text-left" rowspan="1" colspan="1">0xd9b4d48d</td>
+              <td class="text-left" rowspan="1" colspan="1">No</td>
+            </tr>
+          </tbody>
+        </table>
+</div>
+<p id="section-6.1-5">Static segments model the invariant parts except for the isolated 4-bit TCP header length.<a href="#section-6.1-5" class="pilcrow">¶</a></p>
+<p id="section-6.1-6">Resulting static segments:<a href="#section-6.1-6" class="pilcrow">¶</a></p>
+<span id="name-static-segments-for-example"></span><div id="ipv6-tcp-segments">
+<table class="center" id="table-2">
+          <caption>
+<a href="#table-2" class="selfRef">Table 2</a>:
+<a href="#name-static-segments-for-example" class="selfRef">Static segments for example IPv6/TCP packet</a>
+          </caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Segment Offset</th>
+              <th class="text-left" rowspan="1" colspan="1">Segment Length</th>
+              <th class="text-left" rowspan="1" colspan="1">Segment Contents</th>
+              <th class="text-left" rowspan="1" colspan="1">Segment Payload</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0</td>
+              <td class="text-left" rowspan="1" colspan="1">4</td>
+              <td class="text-left" rowspan="1" colspan="1">Version, Traffic Class and Flow Label</td>
+              <td class="text-left" rowspan="1" colspan="1">0x6004bcde</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">6</td>
+              <td class="text-left" rowspan="1" colspan="1">38</td>
+              <td class="text-left" rowspan="1" colspan="1">Next header, Hop limit, Source address, Destination address, Source port, Destination port</td>
+              <td class="text-left" rowspan="1" colspan="1">0x067920010db885a3...</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">58</td>
+              <td class="text-left" rowspan="1" colspan="1">6</td>
+              <td class="text-left" rowspan="1" colspan="1">Urgent pointer, 2 No-Op TCP options, Timestamp option code and length</td>
+              <td class="text-left" rowspan="1" colspan="1">0x00000101080a</td>
+            </tr>
+          </tbody>
+        </table>
+</div>
+<p id="section-6.1-8">Resulting CONNECT_IP_OPTIMIZATION_CREATE capsule with client-allocated even context id is illustrated below:<a href="#section-6.1-8" class="pilcrow">¶</a></p>
+<span id="name-connect_ip_optimization_creat"></span><div id="ipv6-tcp-optimization-create">
+<figure id="figure-8">
+          <div class="alignLeft art-text artwork" id="section-6.1-9.1">
+<pre>
+CONNECT_IP_OPTIMIZATION_CREATE Capsule {
+  Type (i) = 0x1a768469,
+  Length (i) = 58,
+  Context ID (i) = 2,
+  Static Segments Length (i) = 54,
+  Static Segment {
+    Segment Offset (i) = 0,
+    Segment Length (i) = 4,
+    Segment Payload = 0x6004bcde,
+  },
+  Static Segment {
+    Segment Offset (i) = 6,
+    Segment Length (i) = 38,
+    Segment Payload = 0x067920010db885a3000000008a2e0370733420010db8a42b000000007c3a143a15290050d475,
+  },
+  Static Segment {
+    Segment Offset (i) = 58,
+    Segment Length (i) = 6,
+    Segment Payload = 0x00000101080a,
+  },
+  Checksum Field Offset (i) = 56,
+  Checksum Start Offset (i) = 40,
+}
+</pre>
+</div>
+<figcaption><a href="#figure-8" class="selfRef">Figure 8</a>:
+<a href="#name-connect_ip_optimization_creat" class="selfRef">CONNECT_IP_OPTIMIZATION_CREATE Capsule for example IPv6/TCP packet</a>
+          </figcaption></figure>
+</div>
+<p id="section-6.1-10">This template reduces per-packet overhead by omitting 48 bytes of repeated header material, increasing the effective MTU when datagrams are encapsulated in QUIC DATAGRAM frames.<a href="#section-6.1-10" class="pilcrow">¶</a></p>
+<p id="section-6.1-11">The sender concatenates all variable regions in increasing offset order and replaces checksum field with the IPv6/TCP pseudo-header checksum. Packets that do not match this template (for example packets with IPv6 extension headers or without TCP options) are sent using Context ID 0 or associated with a new context.<a href="#section-6.1-11" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="udp-over-ipv4-with-template-and-without-checksum-offload">
+<section id="section-6.2">
+        <h3 id="name-udp-over-ipv4-with-template">
+<a href="#section-6.2" class="section-number selfRef">6.2. </a><a href="#name-udp-over-ipv4-with-template" class="section-name selfRef">UDP over IPv4 with template and without checksum offload</a>
+        </h3>
+<p id="section-6.2-1">Original sample <span>[<a href="#UDP" class="cite xref">UDP</a>]</span> over <span>[<a href="#IPv4" class="cite xref">IPv4</a>]</span> packet layout is illustrated below.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
+<span id="name-example-udp-over-ipv4-packe"></span><div id="original-udp-ipv4">
+<figure id="figure-9">
+          <div id="section-6.2-2.1">
+            <div class="alignLeft art-svg artwork" id="section-6.2-2.1.1">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="448" width="576" viewBox="0 0 576 448" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
+                <path d="M 8,32 L 8,432" fill="none" stroke="black"></path>
+                <path d="M 80,48 L 80,96" fill="none" stroke="black"></path>
+                <path d="M 144,32 L 144,96" fill="none" stroke="black"></path>
+                <path d="M 144,144 L 144,192" fill="none" stroke="black"></path>
+                <path d="M 280,32 L 280,192" fill="none" stroke="black"></path>
+                <path d="M 280,288 L 280,384" fill="none" stroke="black"></path>
+                <path d="M 336,96 L 336,144" fill="none" stroke="black"></path>
+                <path d="M 416,32 L 416,48" fill="none" stroke="black"></path>
+                <path d="M 552,32 L 552,432" fill="none" stroke="black"></path>
+                <path d="M 568,64 L 568,80" fill="none" stroke="black"></path>
+                <path d="M 568,240 L 568,272" fill="none" stroke="black"></path>
+                <path d="M 568,304 L 568,336" fill="none" stroke="black"></path>
+                <path d="M 568,400 L 568,432" fill="none" stroke="black"></path>
+                <path d="M 8,48 L 552,48" fill="none" stroke="black"></path>
+                <path d="M 8,96 L 552,96" fill="none" stroke="black"></path>
+                <path d="M 8,144 L 552,144" fill="none" stroke="black"></path>
+                <path d="M 8,192 L 552,192" fill="none" stroke="black"></path>
+                <path d="M 8,240 L 552,240" fill="none" stroke="black"></path>
+                <path d="M 8,288 L 552,288" fill="none" stroke="black"></path>
+                <path d="M 8,336 L 552,336" fill="none" stroke="black"></path>
+                <path d="M 8,384 L 552,384" fill="none" stroke="black"></path>
+                <polygon class="arrowhead" points="576,432 564,426.4 564,437.6" fill="black" transform="rotate(90,568,432)"></polygon>
+                <polygon class="arrowhead" points="576,304 564,298.4 564,309.6" fill="black" transform="rotate(270,568,304)"></polygon>
+                <polygon class="arrowhead" points="576,272 564,266.4 564,277.6" fill="black" transform="rotate(90,568,272)"></polygon>
+                <polygon class="arrowhead" points="576,64 564,58.4 564,69.6" fill="black" transform="rotate(270,568,64)"></polygon>
+                <g class="text">
+                  <text x="16" y="36">0</text>
+                  <text x="136" y="36">7</text>
+                  <text x="152" y="36">8</text>
+                  <text x="268" y="36">15</text>
+                  <text x="292" y="36">16</text>
+                  <text x="404" y="36">23</text>
+                  <text x="428" y="36">16</text>
+                  <text x="540" y="36">31</text>
+                  <text x="16" y="68">0</text>
+                  <text x="32" y="68">1</text>
+                  <text x="48" y="68">0</text>
+                  <text x="64" y="68">0</text>
+                  <text x="88" y="68">0</text>
+                  <text x="104" y="68">1</text>
+                  <text x="120" y="68">0</text>
+                  <text x="136" y="68">1</text>
+                  <text x="212" y="68">0x02</text>
+                  <text x="412" y="68">0x04cc</text>
+                  <text x="40" y="84">Version</text>
+                  <text x="96" y="84">Hdr</text>
+                  <text x="128" y="84">Len</text>
+                  <text x="184" y="84">Traffic</text>
+                  <text x="240" y="84">Class</text>
+                  <text x="384" y="84">Total</text>
+                  <text x="436" y="84">length</text>
+                  <text x="568" y="100">I</text>
+                  <text x="140" y="116">0x0000</text>
+                  <text x="288" y="116">0</text>
+                  <text x="304" y="116">1</text>
+                  <text x="320" y="116">0</text>
+                  <text x="344" y="116">0</text>
+                  <text x="360" y="116">0</text>
+                  <text x="376" y="116">0</text>
+                  <text x="392" y="116">0</text>
+                  <text x="408" y="116">0</text>
+                  <text x="424" y="116">0</text>
+                  <text x="440" y="116">0</text>
+                  <text x="456" y="116">0</text>
+                  <text x="472" y="116">0</text>
+                  <text x="488" y="116">0</text>
+                  <text x="504" y="116">0</text>
+                  <text x="520" y="116">0</text>
+                  <text x="536" y="116">0</text>
+                  <text x="568" y="116">P</text>
+                  <text x="140" y="132">Identification</text>
+                  <text x="304" y="132">Flags</text>
+                  <text x="412" y="132">Fragment</text>
+                  <text x="476" y="132">offset</text>
+                  <text x="568" y="148">H</text>
+                  <text x="76" y="164">0x40</text>
+                  <text x="212" y="164">0x11</text>
+                  <text x="412" y="164">0xb21b</text>
+                  <text x="568" y="164">E</text>
+                  <text x="72" y="180">TTL</text>
+                  <text x="212" y="180">Protocol</text>
+                  <text x="380" y="180">Header</text>
+                  <text x="444" y="180">checksum</text>
+                  <text x="568" y="180">A</text>
+                  <text x="568" y="196">D</text>
+                  <text x="280" y="212">192.0.2.1</text>
+                  <text x="568" y="212">E</text>
+                  <text x="244" y="228">Source</text>
+                  <text x="304" y="228">Address</text>
+                  <text x="568" y="228">R</text>
+                  <text x="280" y="260">192.0.2.2</text>
+                  <text x="240" y="276">Destination</text>
+                  <text x="320" y="276">Address</text>
+                  <text x="140" y="308">0xc199</text>
+                  <text x="412" y="308">0x1151</text>
+                  <text x="124" y="324">Source</text>
+                  <text x="172" y="324">port</text>
+                  <text x="392" y="324">Destination</text>
+                  <text x="460" y="324">port</text>
+                  <text x="140" y="356">0x04b8</text>
+                  <text x="412" y="356">0x72de</text>
+                  <text x="568" y="356">U</text>
+                  <text x="140" y="372">Length</text>
+                  <text x="412" y="372">Checksum</text>
+                  <text x="568" y="372">D</text>
+                  <text x="568" y="388">P</text>
+                  <text x="200" y="420">UDP</text>
+                  <text x="248" y="420">payload</text>
+                  <text x="304" y="420">(1200</text>
+                  <text x="356" y="420">bytes)</text>
+                  <text x="280" y="436">...</text>
+                </g>
+              </svg><a href="#section-6.2-2.1.1" class="pilcrow">¶</a>
+</div>
+</div>
+<figcaption><a href="#figure-9" class="selfRef">Figure 9</a>:
+<a href="#name-example-udp-over-ipv4-packe" class="selfRef">Example UDP over IPv4 packet before optimization</a>
+          </figcaption></figure>
+</div>
+<p id="section-6.2-3">Table below illustrates fields present in IPv4 header and UDP, their offsets in bits from the beginning of the packet and if they are likely to be static for most packets of a given traffic flow<a href="#section-6.2-3" class="pilcrow">¶</a></p>
+<span id="name-ipv4-header-and-udp-fields-"></span><div id="ipv4-udp-fields">
+<table class="center" id="table-3">
+          <caption>
+<a href="#table-3" class="selfRef">Table 3</a>:
+<a href="#name-ipv4-header-and-udp-fields-" class="selfRef">IPv4 header and UDP fields in example packet</a>
+          </caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Offset</th>
+              <th class="text-left" rowspan="1" colspan="1">Field name</th>
+              <th class="text-left" rowspan="1" colspan="1">Length</th>
+              <th class="text-left" rowspan="1" colspan="1">Value</th>
+              <th class="text-left" rowspan="1" colspan="1">Static</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0</td>
+              <td class="text-left" rowspan="1" colspan="1">Version</td>
+              <td class="text-left" rowspan="1" colspan="1">4</td>
+              <td class="text-left" rowspan="1" colspan="1">0100b</td>
+              <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">4</td>
+              <td class="text-left" rowspan="1" colspan="1">Header length</td>
+              <td class="text-left" rowspan="1" colspan="1">4</td>
+              <td class="text-left" rowspan="1" colspan="1">0101b</td>
+              <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">8</td>
+              <td class="text-left" rowspan="1" colspan="1">Traffic Class</td>
+              <td class="text-left" rowspan="1" colspan="1">8</td>
+              <td class="text-left" rowspan="1" colspan="1">0x02</td>
+              <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">16</td>
+              <td class="text-left" rowspan="1" colspan="1">Total length</td>
+              <td class="text-left" rowspan="1" colspan="1">16</td>
+              <td class="text-left" rowspan="1" colspan="1">0x04cc</td>
+              <td class="text-left" rowspan="1" colspan="1">No</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">32</td>
+              <td class="text-left" rowspan="1" colspan="1">Identification</td>
+              <td class="text-left" rowspan="1" colspan="1">16</td>
+              <td class="text-left" rowspan="1" colspan="1">0x0000</td>
+              <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">48</td>
+              <td class="text-left" rowspan="1" colspan="1">Flags</td>
+              <td class="text-left" rowspan="1" colspan="1">3</td>
+              <td class="text-left" rowspan="1" colspan="1">010b</td>
+              <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">51</td>
+              <td class="text-left" rowspan="1" colspan="1">Fragment offset</td>
+              <td class="text-left" rowspan="1" colspan="1">13</td>
+              <td class="text-left" rowspan="1" colspan="1">0000000000000b</td>
+              <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">64</td>
+              <td class="text-left" rowspan="1" colspan="1">TTL</td>
+              <td class="text-left" rowspan="1" colspan="1">8</td>
+              <td class="text-left" rowspan="1" colspan="1">0x40</td>
+              <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">72</td>
+              <td class="text-left" rowspan="1" colspan="1">Protocol</td>
+              <td class="text-left" rowspan="1" colspan="1">8</td>
+              <td class="text-left" rowspan="1" colspan="1">0x11</td>
+              <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">80</td>
+              <td class="text-left" rowspan="1" colspan="1">Header checksum</td>
+              <td class="text-left" rowspan="1" colspan="1">16</td>
+              <td class="text-left" rowspan="1" colspan="1">0xb21b</td>
+              <td class="text-left" rowspan="1" colspan="1">No</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">96</td>
+              <td class="text-left" rowspan="1" colspan="1">Source address</td>
+              <td class="text-left" rowspan="1" colspan="1">32</td>
+              <td class="text-left" rowspan="1" colspan="1">192.0.2.1</td>
+              <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">128</td>
+              <td class="text-left" rowspan="1" colspan="1">Destination address</td>
+              <td class="text-left" rowspan="1" colspan="1">32</td>
+              <td class="text-left" rowspan="1" colspan="1">192.0.2.2</td>
+              <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">160</td>
+              <td class="text-left" rowspan="1" colspan="1">Source port</td>
+              <td class="text-left" rowspan="1" colspan="1">16</td>
+              <td class="text-left" rowspan="1" colspan="1">0xc199</td>
+              <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">176</td>
+              <td class="text-left" rowspan="1" colspan="1">Destination port</td>
+              <td class="text-left" rowspan="1" colspan="1">16</td>
+              <td class="text-left" rowspan="1" colspan="1">0x1151</td>
+              <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">192</td>
+              <td class="text-left" rowspan="1" colspan="1">Length</td>
+              <td class="text-left" rowspan="1" colspan="1">16</td>
+              <td class="text-left" rowspan="1" colspan="1">0x04b8</td>
+              <td class="text-left" rowspan="1" colspan="1">No</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">208</td>
+              <td class="text-left" rowspan="1" colspan="1">Checksum</td>
+              <td class="text-left" rowspan="1" colspan="1">16</td>
+              <td class="text-left" rowspan="1" colspan="1">0x72de</td>
+              <td class="text-left" rowspan="1" colspan="1">No</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">224</td>
+              <td class="text-left" rowspan="1" colspan="1">UDP payload</td>
+              <td class="text-left" rowspan="1" colspan="1">9600</td>
+              <td class="text-left" rowspan="1" colspan="1">...</td>
+              <td class="text-left" rowspan="1" colspan="1">No</td>
+            </tr>
+          </tbody>
+        </table>
+</div>
+<p id="section-6.2-5">Static segments model the invariant parts:<a href="#section-6.2-5" class="pilcrow">¶</a></p>
+<span id="name-static-segments-for-example-"></span><div id="ipv4-udp-segments">
+<table class="center" id="table-4">
+          <caption>
+<a href="#table-4" class="selfRef">Table 4</a>:
+<a href="#name-static-segments-for-example-" class="selfRef">Static segments for example IPv4/UDP packet</a>
+          </caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Segment Offset</th>
+              <th class="text-left" rowspan="1" colspan="1">Segment Length</th>
+              <th class="text-left" rowspan="1" colspan="1">Segment Contents</th>
+              <th class="text-left" rowspan="1" colspan="1">Segment Payload</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0</td>
+              <td class="text-left" rowspan="1" colspan="1">2</td>
+              <td class="text-left" rowspan="1" colspan="1">Version, Header length and Traffic Class</td>
+              <td class="text-left" rowspan="1" colspan="1">0x4502</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">4</td>
+              <td class="text-left" rowspan="1" colspan="1">6</td>
+              <td class="text-left" rowspan="1" colspan="1">Identification, Flags, Fragment offset, TTL and Protocol</td>
+              <td class="text-left" rowspan="1" colspan="1">0x000040004011</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">12</td>
+              <td class="text-left" rowspan="1" colspan="1">12</td>
+              <td class="text-left" rowspan="1" colspan="1">Source address, Destination address, Source port and Destination port</td>
+              <td class="text-left" rowspan="1" colspan="1">0xc0000201c0000202c1991151</td>
+            </tr>
+          </tbody>
+        </table>
+</div>
+<p id="section-6.2-7">Resulting CONNECT_IP_OPTIMIZATION_CREATE capsule with proxy-allocated odd Context ID is illustrated below:<a href="#section-6.2-7" class="pilcrow">¶</a></p>
+<span id="name-connect_ip_optimization_create"></span><div id="ipv4-udp-optimization-create">
+<figure id="figure-10">
+          <div class="alignLeft art-text artwork" id="section-6.2-8.1">
+<pre>
+CONNECT_IP_OPTIMIZATION_CREATE Capsule {
+  Type (i) = 0x1a768469,
+  Length (i) = 28,
+  Context ID (i) = 3,
+  Static Segments Length (i) = 26,
+  Static Segment {
+    Segment Offset (i) = 0,
+    Segment Length (i) = 2,
+    Segment Payload = 0x4502,
+  },
+  Static Segment {
+    Segment Offset (i) = 4,
+    Segment Length (i) = 6,
+    Segment Payload = 0x000040004011,
+  },
+  Static Segment {
+    Segment Offset (i) = 12,
+    Segment Length (i) = 12,
+    Segment Payload = 0xc0000201c0000202c1991151,
+  }
+}
+</pre>
+</div>
+<figcaption><a href="#figure-10" class="selfRef">Figure 10</a>:
+<a href="#name-connect_ip_optimization_create" class="selfRef">CONNECT_IP_OPTIMIZATION_CREATE Capsule for example IPv4/UDP packet</a>
+          </figcaption></figure>
+</div>
+<p id="section-6.2-9">This template omits 20 bytes of repeated header material, increasing the effective MTU when datagrams are encapsulated in QUIC DATAGRAM frames.<a href="#section-6.2-9" class="pilcrow">¶</a></p>
+<p id="section-6.2-10">The sender concatenates all variable regions in increasing offset order. Because this template does not define checksum offload, the UDP checksum is computed by the sender as usual; the receiver does not perform checksum finishing for this context.<a href="#section-6.2-10" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="security-considerations">
+<section id="section-7">
+      <h2 id="name-security-considerations">
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<p id="section-7-1">This specification changes how CONNECT-IP datagrams are constructed but does not weaken transport-layer integrity or confidentiality protections provided by the underlying HTTP mapping. All Capsules travel on the reliable control stream and inherit those protections.<a href="#section-7-1" class="pilcrow">¶</a></p>
+<p id="section-7-2">Context state can be abused for resource exhaustion. Endpoints enforce negotiated limits from <code>connect-ip-optimizations</code>; they <span class="bcp14">MUST</span> reject creations that exceed the declared template budget and must release budget when a context is retired with CONNECT_IP_OPTIMIZATION_DELETE. Implementations <span class="bcp14">SHOULD</span> bound the number of static segments, validate lengths before allocation and cap per-context memory.<a href="#section-7-2" class="pilcrow">¶</a></p>
+<p id="section-7-3">Negotiation and Capsule handling are directional and immutable to reduce desynchronization risk. Even/odd Context ID allocation prevents collisions between endpoints; CID 0 is reserved and must not appear in Capsules. Unknown CIDs must be dropped. Reusing a CID within the same connection after deletion is not permitted; endpoints <span class="bcp14">MUST</span> allocate a fresh CID to change behavior.<a href="#section-7-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="iana-considerations">
+<section id="section-8">
+      <h2 id="name-iana-considerations">
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+      </h2>
+<div id="http-capsule-types-registration">
+<section id="section-8.1">
+        <h3 id="name-http-capsule-types-registra">
+<a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-http-capsule-types-registra" class="section-name selfRef">HTTP Capsule Types Registration</a>
+        </h3>
+<p id="section-8.1-1">This specification registers the following values in the "HTTP Capsule Types" registry:<a href="#section-8.1-1" class="pilcrow">¶</a></p>
+<p id="section-8.1-2">| Value | Capsule Type
++ --- + --- +
+| 0x1a768469 | CONNECT_IP_OPTIMIZATION_CREATE |
+| 0x1a76846a | CONNECT_IP_OPTIMIZATION_DELETE |<a href="#section-8.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="http-field-name-registration">
+<section id="section-8.2">
+        <h3 id="name-http-field-name-registratio">
+<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-http-field-name-registratio" class="section-name selfRef">HTTP Field Name Registration</a>
+        </h3>
+<p id="section-8.2-1">This specification registers the following value in the "HTTP Field Name" registry:<a href="#section-8.2-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-8.2-2.1">
+            <p id="section-8.2-2.1.1">Field Name: connect-ip-optimizations<a href="#section-8.2-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.2-2.2">
+            <p id="section-8.2-2.2.1">Status: provisional (permanent if approved)<a href="#section-8.2-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.2-2.3">
+            <p id="section-8.2-2.3.1">Structured Type: Dictionary<a href="#section-8.2-2.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.2-2.4">
+            <p id="section-8.2-2.4.1">Reference: This document<a href="#section-8.2-2.4.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+</div>
+</section>
+</div>
+<div id="sec-combined-references">
+<section id="section-9">
+      <h2 id="name-references">
+<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-references" class="section-name selfRef">References</a>
+      </h2>
+<div id="sec-normative-references">
+<section id="section-9.1">
+        <h3 id="name-normative-references">
+<a href="#section-9.1" class="section-number selfRef">9.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+        </h3>
+<dl class="references">
+<dt id="CONNECT-IP">[CONNECT-IP]</dt>
+        <dd>
+<span class="refAuthor">Pauly, T., Ed.</span>, <span class="refAuthor">Schinazi, D.</span>, <span class="refAuthor">Chernyakhovsky, A.</span>, <span class="refAuthor">Kühlewind, M.</span>, and <span class="refAuthor">M. Westerlund</span>, <span class="refTitle">"Proxying IP in HTTP"</span>, <span class="seriesInfo">RFC 9484</span>, <span class="seriesInfo">DOI 10.17487/RFC9484</span>, <time datetime="2023-10" class="refDate">October 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9484">https://www.rfc-editor.org/rfc/rfc9484</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="CONNECT-UDP">[CONNECT-UDP]</dt>
+        <dd>
+<span class="refAuthor">Schinazi, D.</span>, <span class="refTitle">"Proxying UDP in HTTP"</span>, <span class="seriesInfo">RFC 9298</span>, <span class="seriesInfo">DOI 10.17487/RFC9298</span>, <time datetime="2022-08" class="refDate">August 2022</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9298">https://www.rfc-editor.org/rfc/rfc9298</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="HTTP-DATAGRAMS">[HTTP-DATAGRAMS]</dt>
+        <dd>
+<span class="refAuthor">Schinazi, D.</span> and <span class="refAuthor">L. Pardue</span>, <span class="refTitle">"HTTP Datagrams and the Capsule Protocol"</span>, <span class="seriesInfo">RFC 9297</span>, <span class="seriesInfo">DOI 10.17487/RFC9297</span>, <time datetime="2022-08" class="refDate">August 2022</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9297">https://www.rfc-editor.org/rfc/rfc9297</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="INCREMENTAL-CHECKSUM">[INCREMENTAL-CHECKSUM]</dt>
+        <dd>
+<span class="refAuthor">Rijsinghani, A., Ed.</span>, <span class="refTitle">"Computation of the Internet Checksum via Incremental Update"</span>, <span class="seriesInfo">RFC 1624</span>, <span class="seriesInfo">DOI 10.17487/RFC1624</span>, <time datetime="1994-05" class="refDate">May 1994</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc1624">https://www.rfc-editor.org/rfc/rfc1624</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC2119">[RFC2119]</dt>
+        <dd>
+<span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8174">[RFC8174]</dt>
+        <dd>
+<span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="STRUCTURED-HTTP">[STRUCTURED-HTTP]</dt>
+      <dd>
+<span class="refAuthor">Nottingham, M.</span> and <span class="refAuthor">P. Kamp</span>, <span class="refTitle">"Structured Field Values for HTTP"</span>, <span class="seriesInfo">RFC 8941</span>, <span class="seriesInfo">DOI 10.17487/RFC8941</span>, <time datetime="2021-02" class="refDate">February 2021</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8941">https://www.rfc-editor.org/rfc/rfc8941</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="sec-informative-references">
+<section id="section-9.2">
+        <h3 id="name-informative-references">
+<a href="#section-9.2" class="section-number selfRef">9.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+        </h3>
+<dl class="references">
+<dt id="IPv4">[IPv4]</dt>
+        <dd>
+<span class="refAuthor">Postel, J.</span>, <span class="refTitle">"Internet Protocol"</span>, <span class="seriesInfo">STD 5</span>, <span class="seriesInfo">RFC 791</span>, <span class="seriesInfo">DOI 10.17487/RFC0791</span>, <time datetime="1981-09" class="refDate">September 1981</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc791">https://www.rfc-editor.org/rfc/rfc791</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="IPv6">[IPv6]</dt>
+        <dd>
+<span class="refAuthor">Deering, S.</span> and <span class="refAuthor">R. Hinden</span>, <span class="refTitle">"Internet Protocol, Version 6 (IPv6) Specification"</span>, <span class="seriesInfo">STD 86</span>, <span class="seriesInfo">RFC 8200</span>, <span class="seriesInfo">DOI 10.17487/RFC8200</span>, <time datetime="2017-07" class="refDate">July 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8200">https://www.rfc-editor.org/rfc/rfc8200</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="QUIC">[QUIC]</dt>
+        <dd>
+<span class="refAuthor">Iyengar, J., Ed.</span> and <span class="refAuthor">M. Thomson, Ed.</span>, <span class="refTitle">"QUIC: A UDP-Based Multiplexed and Secure Transport"</span>, <span class="seriesInfo">RFC 9000</span>, <span class="seriesInfo">DOI 10.17487/RFC9000</span>, <time datetime="2021-05" class="refDate">May 2021</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9000">https://www.rfc-editor.org/rfc/rfc9000</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="TCP">[TCP]</dt>
+        <dd>
+<span class="refAuthor">Eddy, W., Ed.</span>, <span class="refTitle">"Transmission Control Protocol (TCP)"</span>, <span class="seriesInfo">STD 7</span>, <span class="seriesInfo">RFC 9293</span>, <span class="seriesInfo">DOI 10.17487/RFC9293</span>, <time datetime="2022-08" class="refDate">August 2022</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9293">https://www.rfc-editor.org/rfc/rfc9293</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="TCP-PERF">[TCP-PERF]</dt>
+        <dd>
+<span class="refAuthor">Borman, D.</span>, <span class="refAuthor">Braden, B.</span>, <span class="refAuthor">Jacobson, V.</span>, and <span class="refAuthor">R. Scheffenegger, Ed.</span>, <span class="refTitle">"TCP Extensions for High Performance"</span>, <span class="seriesInfo">RFC 7323</span>, <span class="seriesInfo">DOI 10.17487/RFC7323</span>, <time datetime="2014-09" class="refDate">September 2014</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7323">https://www.rfc-editor.org/rfc/rfc7323</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="UDP">[UDP]</dt>
+      <dd>
+<span class="refAuthor">Postel, J.</span>, <span class="refTitle">"User Datagram Protocol"</span>, <span class="seriesInfo">STD 6</span>, <span class="seriesInfo">RFC 768</span>, <span class="seriesInfo">DOI 10.17487/RFC0768</span>, <time datetime="1980-08" class="refDate">August 1980</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc768">https://www.rfc-editor.org/rfc/rfc768</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+</section>
+</div>
+<div id="acknowledgments">
+<section id="appendix-A">
+      <h2 id="name-acknowledgments">
+<a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
+      </h2>
+<p id="appendix-A-1">TODO acknowledge.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="authors-addresses">
+<section id="appendix-B">
+      <h2 id="name-authors-address">
+<a href="#name-authors-address" class="section-name selfRef">Author's Address</a>
+      </h2>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Yaroslav Rosomakho</span></div>
+<div dir="auto" class="left"><span class="org">Zscaler</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:yrosomakho@zscaler.com" class="email">yrosomakho@zscaler.com</a>
+</div>
+</address>
+</section>
+</div>
+<script>const toc = document.getElementById("toc");
+toc.querySelector("h2").addEventListener("click", e => {
+  toc.classList.toggle("active");
+});
+toc.querySelector("nav").addEventListener("click", e => {
+  toc.classList.remove("active");
+});
+</script>
+</body>
+</html>
