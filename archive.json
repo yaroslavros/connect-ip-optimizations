@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-01-27T01:42:34.025365+00:00",
+  "timestamp": "2026-01-29T01:50:29.771092+00:00",
   "repo": "yaroslavros/connect-ip-optimizations",
   "labels": [
     {
@@ -49,6 +49,55 @@
       "color": "ffffff"
     }
   ],
-  "issues": [],
+  "issues": [
+    {
+      "number": 1,
+      "id": "I_kwDOP8SUQc7mN8XJ",
+      "title": "Allow applicability to more than just connect-ip",
+      "url": "https://github.com/yaroslavros/connect-ip-optimizations/issues/1",
+      "state": "OPEN",
+      "author": "tfpauly",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Compression of static fields works for connect-udp (QUIC CIDs), connect-ethernet, etc.",
+      "createdAt": "2026-01-27T20:58:22Z",
+      "updatedAt": "2026-01-27T20:58:22Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 2,
+      "id": "I_kwDOP8SUQc7mN93O",
+      "title": "Allow for multiple checksums in packets",
+      "url": "https://github.com/yaroslavros/connect-ip-optimizations/issues/2",
+      "state": "OPEN",
+      "author": "tfpauly",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Packets being compressed can have both IPv4 and UDP checksums that could be compressed; we should handle this.",
+      "createdAt": "2026-01-27T21:00:15Z",
+      "updatedAt": "2026-01-27T21:00:15Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 3,
+      "id": "I_kwDOP8SUQc7mN-kE",
+      "title": "Handle compressing packet lengths",
+      "url": "https://github.com/yaroslavros/connect-ip-optimizations/issues/3",
+      "state": "OPEN",
+      "author": "tfpauly",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Packet lengths in headers can be compressed (and re-calculated later). IP and UDP headers have lengths in them; the current draft doesn't give a way to compress these away.",
+      "createdAt": "2026-01-27T21:01:16Z",
+      "updatedAt": "2026-01-27T21:01:16Z",
+      "closedAt": null,
+      "comments": []
+    }
+  ],
   "pulls": []
 }
