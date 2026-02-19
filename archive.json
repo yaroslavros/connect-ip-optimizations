@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-02-17T01:55:10.825421+00:00",
+  "timestamp": "2026-02-19T01:58:03.507372+00:00",
   "repo": "yaroslavros/connect-ip-optimizations",
   "labels": [
     {
@@ -99,5 +99,32 @@
       "comments": []
     }
   ],
-  "pulls": []
+  "pulls": [
+    {
+      "number": 4,
+      "id": "PR_kwDOP8SUQc7EbliN",
+      "title": "-01 changes",
+      "url": "https://github.com/yaroslavros/connect-ip-optimizations/pull/4",
+      "state": "OPEN",
+      "author": "yaroslavros",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "* Separated templates and checksum offload\r\n* Added derived fields for lengths and complete checksums. Added IANA registry for derived fields (more stuff might be added in the future for other protocols)\r\n* Changed capsule design to include Next Context ID\r\n* Aligned ASSIGN/ACK/CLOSE capsule design and naming with other masque drafts\r\n* Templates are applicable to any HTTP datagram based protocols\r\n* CONNECT-ETHERNET can use same derived fields and checksum offload as CONNECT-IP\r\n* Added `mtu` and `segments` restrictions based on feedback from the working group\r\n\r\nKeeping the draft name as it is for now - will update it if working group decides to adopt this at some point in the future.\r\n\r\nIt seems that with all these optimisations sending Ethernet over HTTP/QUIC Datagrams might become viable - at least from MTU perspective!",
+      "createdAt": "2026-02-17T18:42:06Z",
+      "updatedAt": "2026-02-17T18:42:06Z",
+      "baseRepository": "yaroslavros/connect-ip-optimizations",
+      "baseRefName": "main",
+      "baseRefOid": "463a6cc3259ee6cd7a7982e420822bb853c66450",
+      "headRepository": "yaroslavros/connect-ip-optimizations",
+      "headRefName": "01",
+      "headRefOid": "ea3e598586510eceb3599444484f067aa686c83b",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    }
+  ]
 }
