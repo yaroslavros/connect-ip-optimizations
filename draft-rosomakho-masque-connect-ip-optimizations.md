@@ -237,11 +237,11 @@ Segment Offset:
 
 Segment Length:
 
-: Number of bytes in this static segment, encoded as a variable-length integer
+: Length of the Segement Payload field, encoded as a variable-length integer
 
 Segment Payload:
 
-: the static bytes to insert at the Segment Offset
+: Static bytes to insert at the Segment Offset
 
 #### Parsing and validation
 
