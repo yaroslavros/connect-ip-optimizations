@@ -8,8 +8,7 @@ Intended status: Standards Track                        24 February 2026
 Expires: 28 August 2026
 
 
-   Reusable templates, derived fields, and checksum offload for HTTP
-                               Datagrams
+       Extensions to Compress and Derive Fields in HTTP Datagrams
          draft-rosomakho-masque-connect-ip-optimizations-latest
 
 Abstract
