@@ -267,7 +267,7 @@ Table of Contents
    derived (Inner List):  A list of supported Derived Field Types as
       defined in Section 8.3.
 
-   checksum (sf-boolean):  Indicates support for the checksum offload
+   checksum (Boolean):  Indicates support for the checksum offload
       procedure defined in this document.  A value of ?1 means the
       endpoint is willing to complete checksums using sender-provided
       partial values.  If omitted or set to ?0, checksum offload is not
