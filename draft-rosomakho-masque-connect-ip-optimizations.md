@@ -35,7 +35,7 @@ informative:
 
 --- abstract
 
-This document defines extensions for HTTP Datagram-based protocols that improve transmission efficiency by introducing reusable templates and derived field processing contexts.
+This document defines extensions for HTTP Datagram-based protocols that improve transmission efficiency by introducing templates for compressing or deriving datagram fields.
 
 Reusable templates allow endpoints to associate Context Identifiers with static portions of packet headers, enabling datagrams to remove repeated byte sequences while remaining stateless on the wire. Derived field processing allows receivers to reconstruct certain header fields such as packet lengths and complete checksums based on the size of the reconstructed packet.
 
