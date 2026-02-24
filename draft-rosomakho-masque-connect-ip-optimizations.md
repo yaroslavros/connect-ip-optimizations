@@ -114,7 +114,7 @@ This document defines the following optional dictionary keys:
 * `max` (sf-integer, mandatory): maximum number of concurrently active template contexts the sender is willing to maintain for templates created by the peer. A value of 0 indicates that the endpoint does not accept templates from the peer but may use templates for its own transmissions.
 * `segments` (sf-integer, optional): maximum number of static segments accepted within a single template.
 
-`derived` (sf-list):
+`derived` (Inner List):
 
 : A list of supported Derived Field Types as defined in {{iana-derived-fields}}.
 
