@@ -273,8 +273,8 @@ Table of Contents
       partial values.  If omitted or set to ?0, checksum offload is not
       supported.
 
-   mtu (sf-integer):  Upper limit on maximum reconstructed packet size
-      the receiver is willing to accept.
+   mtu (Integer):  Upper limit on maximum reconstructed packet size the
+      receiver is willing to accept.
 
    Endpoints MUST ignore unknown dictionary members.  The absence of a
    member implies that the corresponding capability is not supported for
