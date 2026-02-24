@@ -264,7 +264,7 @@ Table of Contents
    *  segments (sf-integer, optional): maximum number of static segments
       accepted within a single template.
 
-   derived (sf-list):  A list of supported Derived Field Types as
+   derived (Inner List):  A list of supported Derived Field Types as
       defined in Section 8.3.
 
    checksum (sf-boolean):  Indicates support for the checksum offload
