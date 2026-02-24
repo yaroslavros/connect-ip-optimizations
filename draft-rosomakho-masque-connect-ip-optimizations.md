@@ -1,6 +1,7 @@
 ---
 title: "Reusable templates, derived fields, and checksum offload for HTTP Datagrams"
-abbrev: "Reusable templates, derived fields, and checksum offload for HTTP Datagrams"
+title: "Extensions to Compress and Derive Fields in HTTP Datagrams"
+abbrev: "HTTP Datagram Compression"
 category: std
 
 docname: draft-rosomakho-masque-connect-ip-optimizations-latest
