@@ -15,8 +15,8 @@ Expires: 28 August 2026
 Abstract
 
    This document defines extensions for HTTP Datagram-based protocols
-   that improve transmission efficiency by introducing reusable
-   templates and derived field processing contexts.
+   that improve transmission efficiency by introducing templates for
+   compressing or deriving datagram fields.
 
    Reusable templates allow endpoints to associate Context Identifiers
    with static portions of packet headers, enabling datagrams to remove
