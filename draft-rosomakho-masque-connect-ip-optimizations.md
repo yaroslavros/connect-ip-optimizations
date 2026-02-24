@@ -47,7 +47,7 @@ These optimisations reduce per-packet overhead, processing cost, and increase th
 
 # Introduction
 
-The CONNECT-IP method {{!CONNECT-IP=RFC9484}} allows an HTTP client to establish an IP tunnel through an HTTP proxy and exchange IP packets using either HTTP/3 Datagrams specified in {{Section 2.1 of !HTTP-DATAGRAMS=RFC9297}} or DATAGRAM capsules specified in {{Section 3.5 of HTTP-DATAGRAMS}}. Similarly, CONNECT-ETHERNET {{!CONNECT-ETHERNET=I-D.ietf-masque-connect-ethernet}} allows carriage of Ethernet frames over HTTP Datagrams. In these protocols, each packet or frame is carried in full, including all transport and network headers, which provides simplicity and interoperability but incurs per-packet overhead due to the repeated transmission of largely invariant header fields.
+The CONNECT-IP method {{!CONNECT-IP=RFC9484}} allows an HTTP client to establish an IP tunnel through an HTTP proxy and exchange IP packets using either HTTP/3 Datagrams ({{Section 2.1 of !HTTP-DATAGRAMS=RFC9297}}) or DATAGRAM capsules ({{Section 3.5 of HTTP-DATAGRAMS}}). Similarly, CONNECT-ETHERNET {{!CONNECT-ETHERNET=I-D.ietf-masque-connect-ethernet}} allows sending Ethernet frames over HTTP Datagrams. These protocols send complete packets or frames by default, including all transport and network headers. This is a simple approach, but incurs per-packet overhead due to the repeated transmission of largely invariant header fields.
 
 Other HTTP Datagram-based protocols share similar properties: datagrams often contain structured packets where many header fields remain constant across a flow while only a subset of bytes change between packets. Transmitting complete packets therefore wastes bandwidth and processing resources.
 
