@@ -4,8 +4,8 @@
 
 Multiplexed Application Substrate over QUIC Encryption      Y. Rosomakho
 Internet-Draft                                                   Zscaler
-Intended status: Standards Track                        17 February 2026
-Expires: 21 August 2026
+Intended status: Standards Track                        24 February 2026
+Expires: 28 August 2026
 
 
    Reusable templates, derived fields, and checksum offload for HTTP
@@ -67,7 +67,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 21 August 2026.
+   This Internet-Draft will expire on 28 August 2026.
 
 Copyright Notice
 
@@ -143,14 +143,13 @@ Table of Contents
 
    The CONNECT-IP method [CONNECT-IP] allows an HTTP client to establish
    an IP tunnel through an HTTP proxy and exchange IP packets using
-   either HTTP/3 Datagrams specified in Section 2.1 of [HTTP-DATAGRAMS]
-   or DATAGRAM capsules specified in Section 3.5 of [HTTP-DATAGRAMS].
-   Similarly, CONNECT-ETHERNET [CONNECT-ETHERNET] allows carriage of
-   Ethernet frames over HTTP Datagrams.  In these protocols, each packet
-   or frame is carried in full, including all transport and network
-   headers, which provides simplicity and interoperability but incurs
-   per-packet overhead due to the repeated transmission of largely
-   invariant header fields.
+   either HTTP/3 Datagrams (Section 2.1 of [HTTP-DATAGRAMS]) or DATAGRAM
+   capsules (Section 3.5 of [HTTP-DATAGRAMS]).  Similarly, CONNECT-
+   ETHERNET [CONNECT-ETHERNET] allows sending Ethernet frames over HTTP
+   Datagrams.  These protocols send complete packets or frames by
+   default, including all transport and network headers.  This is a
+   simple approach, but incurs per-packet overhead due to the repeated
+   transmission of largely invariant header fields.
 
    Other HTTP Datagram-based protocols share similar properties:
    datagrams often contain structured packets where many header fields
