@@ -572,7 +572,7 @@ DERIVED_ASSIGN Capsule {
 ~~~
 {: #ipv6-tcp-derived-assign title="DERIVED_ASSIGN Capsule for example IPv6/TCP packet"}
 
-Table below illustrates fields present in IPv6 and TCP headers after derived field was removed, their offsets in bits from the beginning of the packet and whether they are likely to be static for most packets of a given traffic flow
+The table below illustrates fields present in IPv6 and TCP headers after derived field was removed, their offsets in bits from the beginning of the packet and whether they are likely to be static for most packets of a given traffic flow
 
 | Offset | Field name | Length | Value | Static |
 | --- | --- | --- | --- | --- |
