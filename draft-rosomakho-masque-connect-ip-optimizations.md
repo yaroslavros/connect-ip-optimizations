@@ -106,12 +106,13 @@ http-datagram-contexts = sf-dictionary
 
 This document defines the following optional dictionary keys:
 
-`templates` (sf-dictionary):
+`max-templates` (Integer):
 
-: Indicates support for reusable templates. The dictionary contains:
+: Maximum number of concurrently active template contexts the sender is willing to maintain for templates created by the peer. Absence of this key or value of 0 indicates that the sender does not support reusable templates.
 
-* `max` (sf-integer, mandatory): maximum number of concurrently active template contexts the sender is willing to maintain for templates created by the peer. A value of 0 indicates that the endpoint does not accept templates from the peer but may use templates for its own transmissions.
-* `segments` (sf-integer, optional): maximum number of static segments accepted within a single template.
+`max-templates-segments` (Integer):
+
+: Maximum number of static segments accepted within a single template. Absence of this key or value of 0 indicates that the sender does not impose a limit on number of static segments in a single template.
 
 `derived` (Inner List):
 
@@ -133,9 +134,9 @@ Capabilities are directional. Each endpoint advertises the processing contexts i
 
 ### Templates
 
-If the peer advertises the `templates` member with a `max` value greater than 0, the endpoint MAY create template contexts up to that limit using capsules defined in {{capsules}}.
+If the peer advertises the `max-templates`  value greater than 0, the endpoint MAY create template contexts up to that limit using capsules defined in {{capsules}}.
 
-An endpoint MUST NOT create templates exceeding the peer's advertised `segments` limit when that parameter is present.
+An endpoint MUST NOT create templates exceeding the peer's advertised `max-template-segments` limit when that parameter is present.
 
 If the peer advertises an `mtu` limit, the sender MUST NOT transmit a datagram that would reconstruct into a packet larger than the advertised limit after all processing contexts have been applied.
 
@@ -249,11 +250,11 @@ The receiver parses a TEMPLATE_ASSIGN capsule by reading, in order: the Context 
 
 Each Static Segment consists of a Segment Offset, a Segment Length, and exactly Segment Length octets of Segment Payload. Static segments MUST appear in strictly increasing Segment Offset order and MUST NOT overlap. There MUST be at least 1 byte between consecutive segments.
 
-A receiver that advertised a `segments` limit in `templates` dictionary of `http-datagram-contexts` MUST ensure that the template does not contain more static segments. A receiver that advertised a `mtu` limit in `http-datagram-contexts` MUST ensure that the sum of Segment Offset and Segment Length of the final segment does not exceed the MTU limit. Final reconstructed packet size validation is performed during packet reconstruction ({{reconstruction}}). The capsule MUST end immediately after the last static segment.
+A receiver that advertised a `max-templates-segments` limit MUST ensure that the template does not contain more static segments. A receiver that advertised a `mtu` limit in `http-datagram-contexts` MUST ensure that the sum of Segment Offset and Segment Length of the final segment does not exceed the MTU limit. Final reconstructed packet size validation is performed during packet reconstruction ({{reconstruction}}). The capsule MUST end immediately after the last static segment.
 
 If any of the capsule fields are malformed upon reception, the receiver of the capsule MUST follow the error-handling procedure defined in {{Section 3.3 of HTTP-DATAGRAMS}}.
 
-A receiver that has already accepted the maximum number of templates it advertised via the `max` member of `templates` in `http-datagram-contexts` MUST treat any additional TEMPLATE_ASSIGN capsule an error and MUST follow the same error-handling procedure.
+A receiver that has already accepted the maximum number of templates it advertised via the `max-templates` member in `http-datagram-contexts` MUST treat any additional TEMPLATE_ASSIGN capsule an error and MUST follow the same error-handling procedure.
 
 Per-packet validation uses the reconstruction procedure described in {{reconstruction}}.
 
