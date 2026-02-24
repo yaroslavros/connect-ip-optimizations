@@ -122,7 +122,7 @@ This document defines the following optional dictionary keys:
 
 : Indicates support for the checksum offload procedure defined in this document. A value of ?1 means the endpoint is willing to complete checksums using sender-provided partial values. If omitted or set to ?0, checksum offload is not supported.
 
-`mtu` (sf-integer):
+`mtu` (Integer):
 
 : Upper limit on maximum reconstructed packet size the receiver is willing to accept.
 
