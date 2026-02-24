@@ -118,7 +118,7 @@ This document defines the following optional dictionary keys:
 
 : A list of supported Derived Field Types as defined in {{iana-derived-fields}}.
 
-`checksum` (sf-boolean):
+`checksum` (Boolean):
 
 : Indicates support for the checksum offload procedure defined in this document. A value of ?1 means the endpoint is willing to complete checksums using sender-provided partial values. If omitted or set to ?0, checksum offload is not supported.
 
