@@ -193,9 +193,9 @@ Table of Contents
    All extensions are negotiated during the HTTP request/response
    handshake and signalled using Capsules on the reliable control
    stream.  Endpoints can always fall back to transmitting complete
-   datagrams using Context ID 0, which represents unoptimised datagrams
-   containing the full payload as defined by the underlying HTTP
-   Datagram protocol.
+   datagrams using Context Identifier 0, which represents unoptimised
+   datagrams containing the full payload as defined by the underlying
+   HTTP Datagram protocol.
 
 2.  Conventions and Definitions
 
@@ -207,11 +207,12 @@ Table of Contents
 
    The following terms are used in this document:
 
-   Context Identifier (CID):  A numeric identifier associated with a
-      Processing Context.  CID encoding and allocation follow the rules
-      defined in Section 4 of [CONNECT-UDP].  CID 0 indicates that the
-      datagram payload is delivered without additional processing as
-      defined by the underlying HTTP Datagram protocol.
+   Context Identifier (Context ID):  A numeric identifier associated
+      with a Processing Context.  Context ID encoding and allocation
+      follow the rules defined in Section 4 of [CONNECT-UDP].  Context
+      ID 0 indicates that the datagram payload is delivered without
+      additional processing as defined by the underlying HTTP Datagram
+      protocol.
 
    Processing Context:  A set of rules describing how an HTTP Datagram
       payload is transformed before delivery to the target protocol.  A
@@ -351,19 +352,19 @@ http-datagram-contexts = templates=(max=65535), derived=(0 1), checksum=?0, mtu=
 
    Processing contexts are created using capsules that define a new
    unique non-zero Context ID encoded as a variable-length integer.  A
-   CID MUST NOT be reused.  As specified in Section 4 of [CONNECT-UDP],
-   even-numbered CIDs are allocated by the client and odd-numbered by
-   the proxy.
+   Context ID MUST NOT be reused.  As specified in Section 4 of
+   [CONNECT-UDP], even-numbered Context IDs are allocated by the client
+   and odd-numbered by the proxy.
 
    Each processing context MAY reference an already-defined parent
    context using Next Context ID encoded as a variable-length integer.
-   A context MUST reference only a CID previously defined by the peer.
-   Forward references are not permitted.  Processing context without a
-   parent is identified by Next Context ID set to 0.  A processing chain
-   MUST NOT contain more than one context of the same type.  A receiver
-   that detects such a condition MUST treat the context as malformed and
-   follow the error-handling procedure defined in Section 3.3 of
-   [HTTP-DATAGRAMS].
+   A context MUST reference only a Context ID previously defined by the
+   peer.  Forward references are not permitted.  Processing context
+   without a parent is identified by Next Context ID set to 0.  A
+   processing chain MUST NOT contain more than one context of the same
+   type.  A receiver that detects such a condition MUST treat the
+   context as malformed and follow the error-handling procedure defined
+   in Section 3.3 of [HTTP-DATAGRAMS].
 
    A receiver of an *_ASSIGN capsule with an invalid Context ID or
    unknown Next Context ID MUST treat it as malformed and follow the
@@ -631,10 +632,10 @@ http-datagram-contexts = templates=(max=65535), derived=(0 1), checksum=?0, mtu=
    A datagram carries a Context Identifier that selects the initial
    Processing Context.  A context MAY reference a parent context using
    Next Context ID.  The complete behavior is defined by recursively
-   following parent contexts until reaching CID 0.
+   following parent contexts until reaching Context ID 0.
 
-   CID 0 indicates that no processing is applied and the payload is
-   delivered unchanged to the underlying HTTP Datagram protocol.
+   Context ID 0 indicates that no processing is applied and the payload
+   is delivered unchanged to the underlying HTTP Datagram protocol.
 
 5.1.  Sender behavior
 
@@ -680,13 +681,13 @@ http-datagram-contexts = templates=(max=65535), derived=(0 1), checksum=?0, mtu=
 5.1.4.  Context Selection
 
    If a packet does not match any available context, the sender MUST use
-   CID 0 and transmit the complete packet.
+   Context ID 0 and transmit the complete packet.
 
 5.2.  Receiver behavior
 
    Upon receiving an HTTP Datagram with a non-zero Context ID, the
    receiver retrieves the referenced Processing Context and recursively
-   resolves its parent contexts until CID 0 is reached.
+   resolves its parent contexts until Context ID 0 is reached.
 
    If any referenced context is unknown, the receiver MAY buffer the
    datagram as described in Section 4.1.2 or drop it.
@@ -983,7 +984,7 @@ TEMPLATE_ASSIGN Capsule {
    with IPv6 extension headers or without TCP options) are sent using
    Context ID 0 or associated with a new context.
 
-   Upon receiving the datagram with CID 6, proxy re-assembles the
+   Upon receiving the datagram with Context ID 6, proxy re-assembles the
    datagram by concatenating static and variable segments according to
    the offsets, re-calculates Payload Length and inserts it into IPv6
    header and completes the TCP checksum using the sender-provided
@@ -1169,10 +1170,10 @@ TEMPLATE_ASSIGN Capsule {
    The sender concatenates all variable regions in increasing offset
    order.
 
-   Upon receiving the datagram with CID 3, client re-assembles the
-   datagram by appending variable segments to the static, re-calculates
-   derived fields and inserts them at appropriate locations in the
-   datagram.
+   Upon receiving the datagram with Context ID 3, client re-assembles
+   the datagram by appending variable segments to the static, re-
+   calculates derived fields and inserts them at appropriate locations
+   in the datagram.
 
 7.  Security Considerations
 
@@ -1187,7 +1188,7 @@ TEMPLATE_ASSIGN Capsule {
    An attacker could attempt to exhaust memory or CPU by creating
    excessive numbers of templates and static segments, purposely sending
    datagrams referencing not-yet-installed contexts and causing
-   excessive buffering of unknown CIDs.
+   excessive buffering of unknown Context IDs.
 
    Implementations MUST enforce limits on number of active templates and
    static segments and restrict memory used for buffering datagrams with

@@ -1351,7 +1351,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <p id="section-1-5">Derived field processing allows the receiver to reconstruct certain header fields (for example packet length fields and complete checksums) based on the size and structure of the reconstructed packet. This eliminates the need for the sender to transmit such fields for every packet.<a href="#section-1-5" class="pilcrow">¶</a></p>
 <p id="section-1-6">In addition, this document defines a checksum offload procedure enabling endpoints to cooperatively compute Internet checksums, where the sender provides a partial checksum and the receiver completes the computation after reconstruction. This mirrors hardware checksum-offload behavior used on network interfaces and tunnel devices, reducing per-packet CPU cost for encapsulating or decapsulating CONNECT-IP and CONNECT-ETHERNET traffic.<a href="#section-1-6" class="pilcrow">¶</a></p>
 <p id="section-1-7">When HTTP Datagrams are encapsulated in QUIC DATAGRAM frames, these optimisations also increase the effective maximum transmission unit (MTU) by reducing the number of bytes carried inside each QUIC packet.<a href="#section-1-7" class="pilcrow">¶</a></p>
-<p id="section-1-8">All extensions are negotiated during the HTTP request/response handshake and signalled using Capsules on the reliable control stream. Endpoints can always fall back to transmitting complete datagrams using Context ID 0, which represents unoptimised datagrams containing the full payload as defined by the underlying HTTP Datagram protocol.<a href="#section-1-8" class="pilcrow">¶</a></p>
+<p id="section-1-8">All extensions are negotiated during the HTTP request/response handshake and signalled using Capsules on the reliable control stream. Endpoints can always fall back to transmitting complete datagrams using Context Identifier 0, which represents unoptimised datagrams containing the full payload as defined by the underlying HTTP Datagram protocol.<a href="#section-1-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="conventions-and-definitions">
@@ -1365,9 +1365,9 @@ described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</s
 appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
 <p id="section-2-2">The following terms are used in this document:<a href="#section-2-2" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-2-3">
-        <dt id="section-2-3.1">Context Identifier (CID):</dt>
+        <dt id="section-2-3.1">Context Identifier (Context ID):</dt>
         <dd style="margin-left: 1.5em" id="section-2-3.2">
-          <p id="section-2-3.2.1">A numeric identifier associated with a Processing Context. CID encoding and allocation follow the rules defined in <span><a href="https://rfc-editor.org/rfc/rfc9298#section-4" class="relref">Section 4</a> of [<a href="#CONNECT-UDP" class="cite xref">CONNECT-UDP</a>]</span>. CID 0 indicates that the datagram payload is delivered without additional processing as defined by the underlying HTTP Datagram protocol.<a href="#section-2-3.2.1" class="pilcrow">¶</a></p>
+          <p id="section-2-3.2.1">A numeric identifier associated with a Processing Context. Context ID encoding and allocation follow the rules defined in <span><a href="https://rfc-editor.org/rfc/rfc9298#section-4" class="relref">Section 4</a> of [<a href="#CONNECT-UDP" class="cite xref">CONNECT-UDP</a>]</span>. Context ID 0 indicates that the datagram payload is delivered without additional processing as defined by the underlying HTTP Datagram protocol.<a href="#section-2-3.2.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-2-3.3">Processing Context:</dt>
@@ -1552,8 +1552,8 @@ http-datagram-contexts = templates=(max=65535), derived=(0 1), checksum=?0, mtu=
           <h4 id="name-processing-context-construc">
 <a href="#section-4.1.1" class="section-number selfRef">4.1.1. </a><a href="#name-processing-context-construc" class="section-name selfRef">Processing Context Construction</a>
           </h4>
-<p id="section-4.1.1-1">Processing contexts are created using capsules that define a new unique non-zero <code>Context ID</code> encoded as a variable-length integer. A CID <span class="bcp14">MUST NOT</span> be reused. As specified in <span><a href="https://rfc-editor.org/rfc/rfc9298#section-4" class="relref">Section 4</a> of [<a href="#CONNECT-UDP" class="cite xref">CONNECT-UDP</a>]</span>, even-numbered CIDs are allocated by the client and odd-numbered by the proxy.<a href="#section-4.1.1-1" class="pilcrow">¶</a></p>
-<p id="section-4.1.1-2">Each processing context <span class="bcp14">MAY</span> reference an already-defined parent context using <code>Next Context ID</code> encoded as a variable-length integer. A context <span class="bcp14">MUST</span> reference only a CID previously defined by the peer. Forward references are not permitted. Processing context without a parent is identified by <code>Next Context ID</code> set to 0. A processing chain <span class="bcp14">MUST NOT</span> contain more than one context of the same type. A receiver that detects such a condition <span class="bcp14">MUST</span> treat the context as malformed and follow the error-handling procedure defined in <span><a href="https://rfc-editor.org/rfc/rfc9297#section-3.3" class="relref">Section 3.3</a> of [<a href="#HTTP-DATAGRAMS" class="cite xref">HTTP-DATAGRAMS</a>]</span>.<a href="#section-4.1.1-2" class="pilcrow">¶</a></p>
+<p id="section-4.1.1-1">Processing contexts are created using capsules that define a new unique non-zero <code>Context ID</code> encoded as a variable-length integer. A Context ID <span class="bcp14">MUST NOT</span> be reused. As specified in <span><a href="https://rfc-editor.org/rfc/rfc9298#section-4" class="relref">Section 4</a> of [<a href="#CONNECT-UDP" class="cite xref">CONNECT-UDP</a>]</span>, even-numbered Context IDs are allocated by the client and odd-numbered by the proxy.<a href="#section-4.1.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.1.1-2">Each processing context <span class="bcp14">MAY</span> reference an already-defined parent context using <code>Next Context ID</code> encoded as a variable-length integer. A context <span class="bcp14">MUST</span> reference only a Context ID previously defined by the peer. Forward references are not permitted. Processing context without a parent is identified by <code>Next Context ID</code> set to 0. A processing chain <span class="bcp14">MUST NOT</span> contain more than one context of the same type. A receiver that detects such a condition <span class="bcp14">MUST</span> treat the context as malformed and follow the error-handling procedure defined in <span><a href="https://rfc-editor.org/rfc/rfc9297#section-3.3" class="relref">Section 3.3</a> of [<a href="#HTTP-DATAGRAMS" class="cite xref">HTTP-DATAGRAMS</a>]</span>.<a href="#section-4.1.1-2" class="pilcrow">¶</a></p>
 <p id="section-4.1.1-3">A receiver of an *_ASSIGN capsule with an invalid <code>Context ID</code> or unknown <code>Next Context ID</code> <span class="bcp14">MUST</span> treat it as malformed and follow the error-handling procedure defined in <span><a href="https://rfc-editor.org/rfc/rfc9297#section-3.3" class="relref">Section 3.3</a> of [<a href="#HTTP-DATAGRAMS" class="cite xref">HTTP-DATAGRAMS</a>]</span>.<a href="#section-4.1.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -1904,8 +1904,8 @@ CHECKSUM_CLOSE Capsule {
 <a href="#section-5" class="section-number selfRef">5. </a><a href="#name-processing-context-operatio" class="section-name selfRef">Processing Context Operation</a>
       </h2>
 <p id="section-5-1">This section defines how endpoints construct and consume HTTP Datagram payloads using Processing Contexts.<a href="#section-5-1" class="pilcrow">¶</a></p>
-<p id="section-5-2">A datagram carries a Context Identifier that selects the initial Processing Context. A context <span class="bcp14">MAY</span> reference a parent context using Next Context ID. The complete behavior is defined by recursively following parent contexts until reaching CID 0.<a href="#section-5-2" class="pilcrow">¶</a></p>
-<p id="section-5-3">CID 0 indicates that no processing is applied and the payload is delivered unchanged to the underlying HTTP Datagram protocol.<a href="#section-5-3" class="pilcrow">¶</a></p>
+<p id="section-5-2">A datagram carries a Context Identifier that selects the initial Processing Context. A context <span class="bcp14">MAY</span> reference a parent context using Next Context ID. The complete behavior is defined by recursively following parent contexts until reaching Context ID 0.<a href="#section-5-2" class="pilcrow">¶</a></p>
+<p id="section-5-3">Context ID 0 indicates that no processing is applied and the payload is delivered unchanged to the underlying HTTP Datagram protocol.<a href="#section-5-3" class="pilcrow">¶</a></p>
 <div id="sender-behavior">
 <section id="section-5.1">
         <h3 id="name-sender-behavior">
@@ -1945,7 +1945,7 @@ CHECKSUM_CLOSE Capsule {
           <h4 id="name-context-selection">
 <a href="#section-5.1.4" class="section-number selfRef">5.1.4. </a><a href="#name-context-selection" class="section-name selfRef">Context Selection</a>
           </h4>
-<p id="section-5.1.4-1">If a packet does not match any available context, the sender <span class="bcp14">MUST</span> use CID 0 and transmit the complete packet.<a href="#section-5.1.4-1" class="pilcrow">¶</a></p>
+<p id="section-5.1.4-1">If a packet does not match any available context, the sender <span class="bcp14">MUST</span> use Context ID 0 and transmit the complete packet.<a href="#section-5.1.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1955,7 +1955,7 @@ CHECKSUM_CLOSE Capsule {
         <h3 id="name-receiver-behavior">
 <a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-receiver-behavior" class="section-name selfRef">Receiver behavior</a>
         </h3>
-<p id="section-5.2-1">Upon receiving an HTTP Datagram with a non-zero Context ID, the receiver retrieves the referenced Processing Context and recursively resolves its parent contexts until CID 0 is reached.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+<p id="section-5.2-1">Upon receiving an HTTP Datagram with a non-zero Context ID, the receiver retrieves the referenced Processing Context and recursively resolves its parent contexts until Context ID 0 is reached.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
 <p id="section-5.2-2">If any referenced context is unknown, the receiver <span class="bcp14">MAY</span> buffer the datagram as described in <a href="#ack" class="auto internal xref">Section 4.1.2</a> or drop it.<a href="#section-5.2-2" class="pilcrow">¶</a></p>
 <p id="section-5.2-3">If multiple processing contexts are present in a chain, the receiver <span class="bcp14">MUST</span> apply them in the following order:<a href="#section-5.2-3" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-5.2-4">
@@ -2483,7 +2483,7 @@ TEMPLATE_ASSIGN Capsule {
 </div>
 <p id="section-6.1-17">The resulting processing context chain reduces per-packet overhead by removing 50 bytes of repeated header material, increasing the effective MTU when datagrams are encapsulated in QUIC DATAGRAM frames.<a href="#section-6.1-17" class="pilcrow">¶</a></p>
 <p id="section-6.1-18">The sender concatenates all variable regions in increasing offset order. Packets that do not match this template (for example packets with IPv6 extension headers or without TCP options) are sent using Context ID 0 or associated with a new context.<a href="#section-6.1-18" class="pilcrow">¶</a></p>
-<p id="section-6.1-19">Upon receiving the datagram with CID 6, proxy re-assembles the datagram by concatenating static and variable segments according to the offsets, re-calculates Payload Length and inserts it into IPv6 header and completes the TCP checksum using the sender-provided pseudo-header partial checksum.<a href="#section-6.1-19" class="pilcrow">¶</a></p>
+<p id="section-6.1-19">Upon receiving the datagram with Context ID 6, proxy re-assembles the datagram by concatenating static and variable segments according to the offsets, re-calculates Payload Length and inserts it into IPv6 header and completes the TCP checksum using the sender-provided pseudo-header partial checksum.<a href="#section-6.1-19" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="connect-ethernet-udp-over-ipv4-with-template-and-derived-fields">
@@ -2867,7 +2867,7 @@ TEMPLATE_ASSIGN Capsule {
 </div>
 <p id="section-6.2-14">The resulting processing context chain reduces per-frame overhead by removing 34 bytes of repeated header material, increasing the effective MTU when datagrams are encapsulated in QUIC DATAGRAM frames.<a href="#section-6.2-14" class="pilcrow">¶</a></p>
 <p id="section-6.2-15">The sender concatenates all variable regions in increasing offset order.<a href="#section-6.2-15" class="pilcrow">¶</a></p>
-<p id="section-6.2-16">Upon receiving the datagram with CID 3, client re-assembles the datagram by appending variable segments to the static, re-calculates derived fields and inserts them at appropriate locations in the datagram.<a href="#section-6.2-16" class="pilcrow">¶</a></p>
+<p id="section-6.2-16">Upon receiving the datagram with Context ID 3, client re-assembles the datagram by appending variable segments to the static, re-calculates derived fields and inserts them at appropriate locations in the datagram.<a href="#section-6.2-16" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2883,7 +2883,7 @@ TEMPLATE_ASSIGN Capsule {
         <h3 id="name-resource-exhaustion">
 <a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-resource-exhaustion" class="section-name selfRef">Resource Exhaustion</a>
         </h3>
-<p id="section-7.1-1">Processing contexts introduce receiver state and reconstruction work. An attacker could attempt to exhaust memory or CPU by creating excessive numbers of templates and static segments, purposely sending datagrams referencing not-yet-installed contexts and causing excessive buffering of unknown CIDs.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
+<p id="section-7.1-1">Processing contexts introduce receiver state and reconstruction work. An attacker could attempt to exhaust memory or CPU by creating excessive numbers of templates and static segments, purposely sending datagrams referencing not-yet-installed contexts and causing excessive buffering of unknown Context IDs.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
 <p id="section-7.1-2">Implementations <span class="bcp14">MUST</span> enforce limits on number of active templates and static segments and restrict memory used for buffering datagrams with unknown contexts.<a href="#section-7.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
