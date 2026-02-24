@@ -429,10 +429,10 @@ http-datagram-contexts = templates=(max=65535), derived=(0 1), checksum=?0, mtu=
    Segment Offset:  Byte offset from the start of the reconstructed
       packet, encoded as a variable-length integer
 
-   Segment Length:  Number of bytes in this static segment, encoded as a
+   Segment Length:  Length of the Segement Payload field, encoded as a
       variable-length integer
 
-   Segment Payload:  the static bytes to insert at the Segment Offset
+   Segment Payload:  Static bytes to insert at the Segment Offset
 
 4.2.1.1.  Parsing and validation
 
