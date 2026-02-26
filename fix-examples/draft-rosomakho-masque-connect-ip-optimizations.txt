@@ -817,7 +817,7 @@ http-datagram-contexts = max-templates=65535, derived=(0 1), checksum=?0, mtu=15
    following http-datagram-contexts HTTP field in proxy response
    confirming CONNECT-IP extended CONNECT.
 
-http-datagram-contexts = max-templates=1 max-templates-segments=2, derived=(1), checksum=?1, mtu=1500
+http-datagram-contexts = max-templates=1, max-templates-segments=2, derived=(1), checksum=?1, mtu=1500
 
           Figure 15: http-datagram-contexts response example
 
