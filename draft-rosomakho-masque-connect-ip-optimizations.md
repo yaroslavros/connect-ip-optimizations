@@ -159,7 +159,7 @@ HTTP/3 sample request (client to proxy):
 :path = /.well-known/masque/ip/*/*/
 :authority = proxy.example.net
 capsule-protocol = ?1
-http-datagram-contexts = templates=(max=20000 segments=32), derived=(0 2 4), checksum=?1, mtu=1500
+http-datagram-contexts = max-templates=20000, max-templates-segments=32, derived=(0 2 4), checksum=?1, mtu=1500
 ~~~
 {: #fig-connect-ip-http-datagram-contexts-request-example title="CONNECT-IP with http-datagram-contexts request example"}
 
@@ -168,7 +168,7 @@ HTTP/3 sample response (proxy to client):
 ~~~
 :status = 200
 capsule-protocol = ?1
-http-datagram-contexts = templates=(max=65535), derived=(0 1), checksum=?0, mtu=1500
+http-datagram-contexts = max-templates=65535, derived=(0 1), checksum=?0, mtu=1500
 ~~~
 {: #fig-connect-ip-http-datagram-contexts-response-example title="CONNECT-IP with http-datagram-contexts response example"}
 
@@ -541,7 +541,7 @@ This packet is to be transmitted from the client to the proxy over CONNECT-IP.
 This example assumes that the peer supports templates with at least two segments per template, IPv6 payload length derived field and checksum offloading. These capabilities were communicated using the following `http-datagram-contexts` HTTP field in proxy response confirming CONNECT-IP extended CONNECT.
 
 ~~~
-http-datagram-contexts = templates=(max=1 segments=2), derived=(1), checksum=?1, mtu=1500
+http-datagram-contexts = max-templates=1, max-templates-segments=2, derived=(1), checksum=?1, mtu=1500
 ~~~
 {: #fig-http-datagram-contexts-example-1 title="http-datagram-contexts response example"}
 
@@ -689,7 +689,7 @@ This frame is to be transmitted from the proxy to the client over CONNECT-ETHERN
 This example assumes that the peer supports templates, IPv4 total length, IPv4 header checksum, UDP length in IPv4 packet and UDP checksum in IPv4 packet derived field. These capabilities were communicated using the following `http-datagram-contexts` HTTP field in client requesting CONNECT-ETHERNET extended CONNECT.
 
 ~~~
-http-datagram-contexts = templates=(max=1 segments=1), derived=(0 2 4 7), mtu=1500
+http-datagram-contexts = max-templates=1, max-templates-segments=1, derived=(0 2 4 7), mtu=1500
 ~~~
 {: #fig-http-datagram-contexts-example-2 title="http-datagram-contexts request example"}
 
