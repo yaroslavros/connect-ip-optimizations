@@ -37,9 +37,9 @@ informative:
 
 This document defines extensions for HTTP Datagram-based protocols that improve transmission efficiency by introducing templates for compressing or deriving datagram fields.
 
-Reusable templates allow endpoints to associate Context Identifiers with static portions of packet headers, enabling datagrams to remove repeated byte sequences while remaining stateless on the wire. Derived field processing allows receivers to reconstruct certain header fields such as packet lengths and complete checksums based on the size of the reconstructed packet.
+These templates allow endpoints to define parts of datagrams that are static and can be removed, and other parts that can be derived (such as packet lengths and checksum values).
 
-Additionally, this document defines a checksum offload procedure enabling receivers to complete checksums using sender-provided partial values.
+Additionally, this document defines a checksum offload procedure enabling receivers to complete Internet checksums using sender-provided partial values.
 
 These optimisations reduce per-packet overhead, processing cost, and increase the effective maximum transmission unit (MTU) when datagrams are encapsulated in QUIC DATAGRAM frames.
 
