@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-02-19T01:58:03.507372+00:00",
+  "timestamp": "2026-02-26T01:52:45.039671+00:00",
   "repo": "yaroslavros/connect-ip-optimizations",
   "labels": [
     {
@@ -97,6 +97,22 @@
       "updatedAt": "2026-01-27T21:01:16Z",
       "closedAt": null,
       "comments": []
+    },
+    {
+      "number": 6,
+      "id": "I_kwDOP8SUQc7t3ItN",
+      "title": "Derived fields example and guidance",
+      "url": "https://github.com/yaroslavros/connect-ip-optimizations/issues/6",
+      "state": "OPEN",
+      "author": "yaroslavros",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "As per https://github.com/yaroslavros/connect-ip-optimizations/pull/4#discussion_r2854144608 we should add more examples and guidance on derived fields.",
+      "createdAt": "2026-02-25T17:11:37Z",
+      "updatedAt": "2026-02-25T17:11:37Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -112,19 +128,458 @@
       "labels": [],
       "body": "* Separated templates and checksum offload\r\n* Added derived fields for lengths and complete checksums. Added IANA registry for derived fields (more stuff might be added in the future for other protocols)\r\n* Changed capsule design to include Next Context ID\r\n* Aligned ASSIGN/ACK/CLOSE capsule design and naming with other masque drafts\r\n* Templates are applicable to any HTTP datagram based protocols\r\n* CONNECT-ETHERNET can use same derived fields and checksum offload as CONNECT-IP\r\n* Added `mtu` and `segments` restrictions based on feedback from the working group\r\n\r\nKeeping the draft name as it is for now - will update it if working group decides to adopt this at some point in the future.\r\n\r\nIt seems that with all these optimisations sending Ethernet over HTTP/QUIC Datagrams might become viable - at least from MTU perspective!",
       "createdAt": "2026-02-17T18:42:06Z",
-      "updatedAt": "2026-02-17T18:42:06Z",
+      "updatedAt": "2026-02-25T17:11:56Z",
       "baseRepository": "yaroslavros/connect-ip-optimizations",
       "baseRefName": "main",
       "baseRefOid": "463a6cc3259ee6cd7a7982e420822bb853c66450",
       "headRepository": "yaroslavros/connect-ip-optimizations",
       "headRefName": "01",
-      "headRefOid": "ea3e598586510eceb3599444484f067aa686c83b",
+      "headRefOid": "503d8ea2ac38dc00ac270c3a9eb7cef313625aea",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOP8SUQc7lLI6f",
+          "commit": {
+            "abbreviatedOid": "ea3e598"
+          },
+          "author": "tfpauly",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-02-24T03:58:21Z",
+          "updatedAt": "2026-02-24T04:08:43Z",
+          "comments": [
+            {
+              "originalPosition": 29,
+              "body": "```suggestion\nThe CONNECT-IP method {{!CONNECT-IP=RFC9484}} allows an HTTP client to establish an IP tunnel through an HTTP proxy and exchange IP packets using either HTTP/3 Datagrams ({{Section 2.1 of !HTTP-DATAGRAMS=RFC9297}}) or DATAGRAM capsules ({{Section 3.5 of HTTP-DATAGRAMS}}). Similarly, CONNECT-ETHERNET {{!CONNECT-ETHERNET=I-D.ietf-masque-connect-ethernet}} allows sending Ethernet frames over HTTP Datagrams. These protocols send complete packets or frames by default, including all transport and network headers. This is a simple approach, but incurs per-packet overhead due to the repeated transmission of largely invariant header fields.\n```",
+              "createdAt": "2026-02-24T03:58:21Z",
+              "updatedAt": "2026-02-24T04:08:43Z"
+            },
+            {
+              "originalPosition": 14,
+              "body": "```suggestion\nThis document defines extensions for HTTP Datagram-based protocols that improve transmission efficiency by introducing templates for compressing or deriving datagram fields.\n```",
+              "createdAt": "2026-02-24T04:01:16Z",
+              "updatedAt": "2026-02-24T04:08:43Z"
+            },
+            {
+              "originalPosition": 54,
+              "body": "CID really makes me think of QUIC CIDs... probably better to just say Context ID?",
+              "createdAt": "2026-02-24T04:05:13Z",
+              "updatedAt": "2026-02-24T04:08:43Z"
+            },
+            {
+              "originalPosition": 5,
+              "body": "This title is getting to be a doozy!\n\nWould it be OK to call this compression?\n\n```suggestion\ntitle: \"Extensions to Compress and Derive Fields in HTTP Datagrams\"\nabbrev: \"HTTP Datagram Compression\"\n```",
+              "createdAt": "2026-02-24T04:08:24Z",
+              "updatedAt": "2026-02-24T04:08:43Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOP8SUQc7lLQmq",
+          "commit": {
+            "abbreviatedOid": "ea3e598"
+          },
+          "author": "tfpauly",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-02-24T04:11:23Z",
+          "updatedAt": "2026-02-24T04:11:23Z",
+          "comments": [
+            {
+              "originalPosition": 99,
+              "body": "I don't think you can have a dictionary within a dictionary in structured fields. Each value of a field is an Item or array; although these can parameterized",
+              "createdAt": "2026-02-24T04:11:23Z",
+              "updatedAt": "2026-02-24T04:11:23Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOP8SUQc7lLSpE",
+          "commit": {
+            "abbreviatedOid": "ea3e598"
+          },
+          "author": "tfpauly",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-02-24T04:14:19Z",
+          "updatedAt": "2026-02-24T04:14:19Z",
+          "comments": [
+            {
+              "originalPosition": 99,
+              "body": "For these fields in \"templates\" it seems to me they could be top-level keys; `max-templates` and `max-template-segments`.",
+              "createdAt": "2026-02-24T04:14:19Z",
+              "updatedAt": "2026-02-24T04:14:20Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOP8SUQc7lLTON",
+          "commit": {
+            "abbreviatedOid": "ea3e598"
+          },
+          "author": "tfpauly",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-02-24T04:15:17Z",
+          "updatedAt": "2026-02-24T04:15:17Z",
+          "comments": [
+            {
+              "originalPosition": 107,
+              "body": "```suggestion\n`derived` (Inner List):\n```",
+              "createdAt": "2026-02-24T04:15:17Z",
+              "updatedAt": "2026-02-24T04:15:17Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOP8SUQc7lLTVh",
+          "commit": {
+            "abbreviatedOid": "ea3e598"
+          },
+          "author": "tfpauly",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-02-24T04:15:28Z",
+          "updatedAt": "2026-02-24T04:30:18Z",
+          "comments": [
+            {
+              "originalPosition": 111,
+              "body": "```suggestion\n`checksum` (Boolean):\n```",
+              "createdAt": "2026-02-24T04:15:28Z",
+              "updatedAt": "2026-02-24T04:30:18Z"
+            },
+            {
+              "originalPosition": 117,
+              "body": "```suggestion\n`mtu` (Integer):\n```",
+              "createdAt": "2026-02-24T04:15:41Z",
+              "updatedAt": "2026-02-24T04:30:18Z"
+            },
+            {
+              "originalPosition": 1,
+              "body": "Can we clarify that the length defines the length of the Segment Payload field, which is used to know when this segment ends? (That's what I assume at least)",
+              "createdAt": "2026-02-24T04:21:55Z",
+              "updatedAt": "2026-02-24T04:30:18Z"
+            },
+            {
+              "originalPosition": 245,
+              "body": "Why \"ASSIGN\"? How about TEMPLATE_CREATE or TEMPLATE_DEFINE?",
+              "createdAt": "2026-02-24T04:22:50Z",
+              "updatedAt": "2026-02-24T04:30:18Z"
+            },
+            {
+              "originalPosition": 316,
+              "body": "Same comment around ASSIGN. Maybe call this DERIVED_FIELD_*, like DERIVED_FIELD_DEFINE or DERIVED_FIELD_CREATE",
+              "createdAt": "2026-02-24T04:23:59Z",
+              "updatedAt": "2026-02-24T04:30:18Z"
+            },
+            {
+              "originalPosition": 577,
+              "body": "```suggestion\nThe table below illustrates fields present in IPv6 and TCP headers after derived field was removed, their offsets in bits from the beginning of the packet and whether they are likely to be static for most packets of a given traffic flow\n```",
+              "createdAt": "2026-02-24T04:26:48Z",
+              "updatedAt": "2026-02-24T04:30:18Z"
+            },
+            {
+              "originalPosition": 318,
+              "body": "Does there need to be (or ought there to be) an offset field for the derived field? The checksum and static template fields have offsets, and it feels like it would be easier to know for sure where the various fields go if there is an offset?\n\nI guess if one knows how the packet should be laid out, it will be possible to always know, but maybe that should be spelled out in the registry then?",
+              "createdAt": "2026-02-24T04:29:32Z",
+              "updatedAt": "2026-02-24T04:30:18Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOP8SUQc7lZ5_H",
+          "commit": {
+            "abbreviatedOid": "ea3e598"
+          },
+          "author": "yaroslavros",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-02-24T15:41:56Z",
+          "updatedAt": "2026-02-24T15:41:56Z",
+          "comments": [
+            {
+              "originalPosition": 318,
+              "body": "So far I cannot think of a practical use case when one knows how to calculate a derived field but does not know where to place it.\r\nOn top of that, many of currently specified derived fields do not have static offsets due to dynamic nature of some things such as IPv6 extension headers, IP options, etc.\r\n\r\nDo you have any specific cases for derived fields that would require explicit offset specification?",
+              "createdAt": "2026-02-24T15:41:56Z",
+              "updatedAt": "2026-02-24T15:41:57Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOP8SUQc7lZ8ii",
+          "commit": {
+            "abbreviatedOid": "ea3e598"
+          },
+          "author": "yaroslavros",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-02-24T15:43:26Z",
+          "updatedAt": "2026-02-24T15:43:27Z",
+          "comments": [
+            {
+              "originalPosition": 316,
+              "body": "I thought it would be good to align terminology with draft-ietf-masque-connect-udp-listen.\r\n\r\nHappy to use _CREATE or _DEFINE instead if that fits better in your opinion.",
+              "createdAt": "2026-02-24T15:43:26Z",
+              "updatedAt": "2026-02-24T15:43:27Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOP8SUQc7laC4b",
+          "commit": {
+            "abbreviatedOid": "ea3e598"
+          },
+          "author": "yaroslavros",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-02-24T15:47:02Z",
+          "updatedAt": "2026-02-24T15:47:02Z",
+          "comments": [
+            {
+              "originalPosition": 54,
+              "body": "Sure. I'll update the text.",
+              "createdAt": "2026-02-24T15:47:02Z",
+              "updatedAt": "2026-02-24T15:47:02Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOP8SUQc7lcP1A",
+          "commit": {
+            "abbreviatedOid": "ea3e598"
+          },
+          "author": "yaroslavros",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-02-24T17:16:02Z",
+          "updatedAt": "2026-02-24T17:16:02Z",
+          "comments": [
+            {
+              "originalPosition": 54,
+              "body": "Updated",
+              "createdAt": "2026-02-24T17:16:02Z",
+              "updatedAt": "2026-02-24T17:16:02Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOP8SUQc7lecvo",
+          "commit": {
+            "abbreviatedOid": "d2454bb"
+          },
+          "author": "tfpauly",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-02-24T19:00:10Z",
+          "updatedAt": "2026-02-24T19:00:10Z",
+          "comments": [
+            {
+              "originalPosition": 5,
+              "body": "```suggestion\ntitle: \"Extensions to Compress and Derive Fields in HTTP Datagrams\"\n```",
+              "createdAt": "2026-02-24T19:00:10Z",
+              "updatedAt": "2026-02-24T19:00:10Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOP8SUQc7lgr3f",
+          "commit": {
+            "abbreviatedOid": "ea3e598"
+          },
+          "author": "yaroslavros",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-02-24T21:10:30Z",
+          "updatedAt": "2026-02-24T21:10:31Z",
+          "comments": [
+            {
+              "originalPosition": 1,
+              "body": "Done",
+              "createdAt": "2026-02-24T21:10:30Z",
+              "updatedAt": "2026-02-24T21:10:31Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOP8SUQc7lg7Gl",
+          "commit": {
+            "abbreviatedOid": "ea3e598"
+          },
+          "author": "yaroslavros",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-02-24T21:23:45Z",
+          "updatedAt": "2026-02-24T21:23:45Z",
+          "comments": [
+            {
+              "originalPosition": 99,
+              "body": "Done. Please review.",
+              "createdAt": "2026-02-24T21:23:45Z",
+              "updatedAt": "2026-02-24T21:23:46Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOP8SUQc7lzWLl",
+          "commit": {
+            "abbreviatedOid": "503d8ea"
+          },
+          "author": "tfpauly",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-02-25T16:40:40Z",
+          "updatedAt": "2026-02-25T16:40:40Z",
+          "comments": [
+            {
+              "originalPosition": 22,
+              "body": "Sorry, my comment had been messed up. I was suggesting shortening the whole abstract to be more abstract-like =) \n```suggestion\nThese templates allow endpoints to define parts of datagrams that are static and can be removed, and other parts that can be derived (such as packet lengths and checksum values).\n\nThese optimisations reduce per-packet overhead, processing cost, and increase the effective maximum transmission unit (MTU) when datagrams are encapsulated in QUIC DATAGRAM frames.\n```",
+              "createdAt": "2026-02-25T16:40:40Z",
+              "updatedAt": "2026-02-25T16:40:40Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOP8SUQc7lzYP4",
+          "commit": {
+            "abbreviatedOid": "ea3e598"
+          },
+          "author": "tfpauly",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-02-25T16:42:14Z",
+          "updatedAt": "2026-02-25T16:42:15Z",
+          "comments": [
+            {
+              "originalPosition": 316,
+              "body": "Agreed that matching makes sense. Ignore this comment!",
+              "createdAt": "2026-02-25T16:42:14Z",
+              "updatedAt": "2026-02-25T16:42:15Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOP8SUQc7lzZup",
+          "commit": {
+            "abbreviatedOid": "ea3e598"
+          },
+          "author": "tfpauly",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-02-25T16:43:23Z",
+          "updatedAt": "2026-02-25T16:43:23Z",
+          "comments": [
+            {
+              "originalPosition": 318,
+              "body": "That's a good point. I think what would be good (but can be added later) is to have examples and guidance of how to calculate where to put the various derived fields to make sure implementations have an easy time doing it correctly.",
+              "createdAt": "2026-02-25T16:43:23Z",
+              "updatedAt": "2026-02-25T16:43:23Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOP8SUQc7lz-EP",
+          "commit": {
+            "abbreviatedOid": "503d8ea"
+          },
+          "author": "yaroslavros",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-02-25T17:10:27Z",
+          "updatedAt": "2026-02-25T17:10:27Z",
+          "comments": [
+            {
+              "originalPosition": 22,
+              "body": "I think it is worth keeping a mention of checksum offload. Checksum offload is neither template nor derived field. How about:\n\n> These templates allow endpoints to define parts of datagrams that are static and can be removed, and other parts that can be derived (such as packet lengths and checksum values).\n>\n> Additionally, this document defines a checksum offload procedure enabling receivers to complete Internet checksums using sender-provided partial values.\n>\n> These optimisations reduce per-packet overhead, processing cost, and increase the effective maximum transmission unit (MTU) when datagrams are encapsulated in QUIC DATAGRAM frames.",
+              "createdAt": "2026-02-25T17:10:27Z",
+              "updatedAt": "2026-02-25T17:10:27Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOP8SUQc7lz_zD",
+          "commit": {
+            "abbreviatedOid": "ea3e598"
+          },
+          "author": "yaroslavros",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-02-25T17:11:56Z",
+          "updatedAt": "2026-02-25T17:11:56Z",
+          "comments": [
+            {
+              "originalPosition": 318,
+              "body": "Added https://github.com/yaroslavros/connect-ip-optimizations/issues/6 to track this.",
+              "createdAt": "2026-02-25T17:11:56Z",
+              "updatedAt": "2026-02-25T17:11:56Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "id": "PR_kwDOP8SUQc7F0KcY",
+      "title": "Add Tommy as co-author",
+      "url": "https://github.com/yaroslavros/connect-ip-optimizations/pull/5",
+      "state": "MERGED",
+      "author": "tfpauly",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [
+        "tfpauly"
+      ],
+      "labels": [],
+      "body": "",
+      "createdAt": "2026-02-24T04:31:18Z",
+      "updatedAt": "2026-02-24T15:33:12Z",
+      "baseRepository": "yaroslavros/connect-ip-optimizations",
+      "baseRefName": "main",
+      "baseRefOid": "463a6cc3259ee6cd7a7982e420822bb853c66450",
+      "headRepository": "yaroslavros/connect-ip-optimizations",
+      "headRefName": "tfpauly-patch-1",
+      "headRefOid": "68082746a2d581716b6a7085918f0a27f9d6be34",
+      "closedAt": "2026-02-24T15:33:12Z",
+      "mergedAt": "2026-02-24T15:33:12Z",
+      "mergedBy": "yaroslavros",
+      "mergeCommit": {
+        "oid": "bec64a4e1b3ae07a4e9a2dd0082e7e16d0f175ff"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOP8SUQc7lZs0Q",
+          "commit": {
+            "abbreviatedOid": "6808274"
+          },
+          "author": "yaroslavros",
+          "authorAssociation": "OWNER",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-02-24T15:33:05Z",
+          "updatedAt": "2026-02-24T15:33:05Z",
+          "comments": []
+        }
+      ]
     }
   ]
 }
