@@ -5,8 +5,8 @@
 Multiplexed Application Substrate over QUIC Encryption      Y. Rosomakho
 Internet-Draft                                                   Zscaler
 Intended status: Standards Track                                T. Pauly
-Expires: 30 August 2026                                            Apple
-                                                        26 February 2026
+Expires: 31 August 2026                                            Apple
+                                                        27 February 2026
 
 
        Extensions to Compress and Derive Fields in HTTP Datagrams
@@ -64,7 +64,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 30 August 2026.
+   This Internet-Draft will expire on 31 August 2026.
 
 Copyright Notice
 
@@ -317,7 +317,7 @@ Table of Contents
 :path = /.well-known/masque/ip/*/*/
 :authority = proxy.example.net
 capsule-protocol = ?1
-http-datagram-contexts = templates=(max=20000 segments=32), derived=(0 2 4), checksum=?1, mtu=1500
+http-datagram-contexts = max-templates=20000, max-templates-segments=32, derived=(0 2 4), checksum=?1, mtu=1500
 
    Figure 2: CONNECT-IP with http-datagram-contexts request example
 
@@ -325,7 +325,7 @@ http-datagram-contexts = templates=(max=20000 segments=32), derived=(0 2 4), che
 
 :status = 200
 capsule-protocol = ?1
-http-datagram-contexts = templates=(max=65535), derived=(0 1), checksum=?0, mtu=1500
+http-datagram-contexts = max-templates=65535, derived=(0 1), checksum=?0, mtu=1500
 
   Figure 3: CONNECT-IP with http-datagram-contexts response example
 
@@ -818,7 +818,7 @@ http-datagram-contexts = templates=(max=65535), derived=(0 1), checksum=?0, mtu=
    following http-datagram-contexts HTTP field in proxy response
    confirming CONNECT-IP extended CONNECT.
 
-http-datagram-contexts = templates=(max=1 segments=2), derived=(1), checksum=?1, mtu=1500
+http-datagram-contexts = max-templates=1, max-templates-segments=2, derived=(1), checksum=?1, mtu=1500
 
           Figure 15: http-datagram-contexts response example
 
@@ -1041,7 +1041,7 @@ TEMPLATE_ASSIGN Capsule {
    communicated using the following http-datagram-contexts HTTP field in
    client requesting CONNECT-ETHERNET extended CONNECT.
 
-http-datagram-contexts = templates=(max=1 segments=1), derived=(0 2 4 7), mtu=1500
+http-datagram-contexts = max-templates=1, max-templates-segments=1, derived=(0 2 4 7), mtu=1500
 
           Figure 20: http-datagram-contexts request example
 
