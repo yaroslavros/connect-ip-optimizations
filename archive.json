@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-02-26T01:52:45.039671+00:00",
+  "timestamp": "2026-03-01T02:04:09.026455+00:00",
   "repo": "yaroslavros/connect-ip-optimizations",
   "labels": [
     {
@@ -55,15 +55,15 @@
       "id": "I_kwDOP8SUQc7mN8XJ",
       "title": "Allow applicability to more than just connect-ip",
       "url": "https://github.com/yaroslavros/connect-ip-optimizations/issues/1",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "tfpauly",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Compression of static fields works for connect-udp (QUIC CIDs), connect-ethernet, etc.",
       "createdAt": "2026-01-27T20:58:22Z",
-      "updatedAt": "2026-01-27T20:58:22Z",
-      "closedAt": null,
+      "updatedAt": "2026-02-26T22:51:09Z",
+      "closedAt": "2026-02-26T22:51:09Z",
       "comments": []
     },
     {
@@ -71,15 +71,15 @@
       "id": "I_kwDOP8SUQc7mN93O",
       "title": "Allow for multiple checksums in packets",
       "url": "https://github.com/yaroslavros/connect-ip-optimizations/issues/2",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "tfpauly",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Packets being compressed can have both IPv4 and UDP checksums that could be compressed; we should handle this.",
       "createdAt": "2026-01-27T21:00:15Z",
-      "updatedAt": "2026-01-27T21:00:15Z",
-      "closedAt": null,
+      "updatedAt": "2026-02-26T22:51:10Z",
+      "closedAt": "2026-02-26T22:51:10Z",
       "comments": []
     },
     {
@@ -87,15 +87,15 @@
       "id": "I_kwDOP8SUQc7mN-kE",
       "title": "Handle compressing packet lengths",
       "url": "https://github.com/yaroslavros/connect-ip-optimizations/issues/3",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "tfpauly",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Packet lengths in headers can be compressed (and re-calculated later). IP and UDP headers have lengths in them; the current draft doesn't give a way to compress these away.",
       "createdAt": "2026-01-27T21:01:16Z",
-      "updatedAt": "2026-01-27T21:01:16Z",
-      "closedAt": null,
+      "updatedAt": "2026-02-26T22:51:10Z",
+      "closedAt": "2026-02-26T22:51:10Z",
       "comments": []
     },
     {
@@ -113,6 +113,22 @@
       "updatedAt": "2026-02-25T17:11:37Z",
       "closedAt": null,
       "comments": []
+    },
+    {
+      "number": 8,
+      "id": "I_kwDOP8SUQc7umxB6",
+      "title": "Explain possible conflicts in checksums",
+      "url": "https://github.com/yaroslavros/connect-ip-optimizations/issues/8",
+      "state": "OPEN",
+      "author": "tfpauly",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Currently, it would be possible to set both partial checksum offload and use the derived field for checksums. Doing so would be contradictory and an error. This should be called out and explained more.",
+      "createdAt": "2026-02-27T22:27:39Z",
+      "updatedAt": "2026-02-27T22:27:39Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -121,24 +137,26 @@
       "id": "PR_kwDOP8SUQc7EbliN",
       "title": "-01 changes",
       "url": "https://github.com/yaroslavros/connect-ip-optimizations/pull/4",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "yaroslavros",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
       "body": "* Separated templates and checksum offload\r\n* Added derived fields for lengths and complete checksums. Added IANA registry for derived fields (more stuff might be added in the future for other protocols)\r\n* Changed capsule design to include Next Context ID\r\n* Aligned ASSIGN/ACK/CLOSE capsule design and naming with other masque drafts\r\n* Templates are applicable to any HTTP datagram based protocols\r\n* CONNECT-ETHERNET can use same derived fields and checksum offload as CONNECT-IP\r\n* Added `mtu` and `segments` restrictions based on feedback from the working group\r\n\r\nKeeping the draft name as it is for now - will update it if working group decides to adopt this at some point in the future.\r\n\r\nIt seems that with all these optimisations sending Ethernet over HTTP/QUIC Datagrams might become viable - at least from MTU perspective!",
       "createdAt": "2026-02-17T18:42:06Z",
-      "updatedAt": "2026-02-25T17:11:56Z",
+      "updatedAt": "2026-02-26T22:50:42Z",
       "baseRepository": "yaroslavros/connect-ip-optimizations",
       "baseRefName": "main",
       "baseRefOid": "463a6cc3259ee6cd7a7982e420822bb853c66450",
       "headRepository": "yaroslavros/connect-ip-optimizations",
       "headRefName": "01",
-      "headRefOid": "503d8ea2ac38dc00ac270c3a9eb7cef313625aea",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "220120897ce42626d4637db15d33e9b880165828",
+      "closedAt": "2026-02-26T22:50:42Z",
+      "mergedAt": "2026-02-26T22:50:42Z",
+      "mergedBy": "yaroslavros",
+      "mergeCommit": {
+        "oid": "70ecae9c79b84c2b416e7597b472749609131785"
+      },
       "comments": [],
       "reviews": [
         {
@@ -449,9 +467,9 @@
           "comments": [
             {
               "originalPosition": 22,
-              "body": "Sorry, my comment had been messed up. I was suggesting shortening the whole abstract to be more abstract-like =) \n```suggestion\nThese templates allow endpoints to define parts of datagrams that are static and can be removed, and other parts that can be derived (such as packet lengths and checksum values).\n\nThese optimisations reduce per-packet overhead, processing cost, and increase the effective maximum transmission unit (MTU) when datagrams are encapsulated in QUIC DATAGRAM frames.\n```",
+              "body": "Sorry, my comment had been messed up. I was suggesting shortening the whole abstract to be more abstract-like =) \r\n```suggestion\r\nThese templates allow endpoints to define parts of datagrams that are static and can be removed, and other parts that can be derived (such as packet lengths and checksum values).\r\n\r\nAdditionally, this document defines a checksum offload procedure enabling receivers to complete Internet checksums using sender-provided partial values.\r\n\r\nThese optimisations reduce per-packet overhead, processing cost, and increase the effective maximum transmission unit (MTU) when datagrams are encapsulated in QUIC DATAGRAM frames.\r\n```",
               "createdAt": "2026-02-25T16:40:40Z",
-              "updatedAt": "2026-02-25T16:40:40Z"
+              "updatedAt": "2026-02-26T03:19:03Z"
             }
           ]
         },
@@ -534,6 +552,39 @@
               "updatedAt": "2026-02-25T17:11:56Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOP8SUQc7l9zBK",
+          "commit": {
+            "abbreviatedOid": "503d8ea"
+          },
+          "author": "tfpauly",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-02-26T03:19:08Z",
+          "updatedAt": "2026-02-26T03:19:09Z",
+          "comments": [
+            {
+              "originalPosition": 22,
+              "body": "Sold!",
+              "createdAt": "2026-02-26T03:19:08Z",
+              "updatedAt": "2026-02-26T03:19:09Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOP8SUQc7l91ET",
+          "commit": {
+            "abbreviatedOid": "2201208"
+          },
+          "author": "tfpauly",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-02-26T03:22:40Z",
+          "updatedAt": "2026-02-26T03:22:40Z",
+          "comments": []
         }
       ]
     },
@@ -577,6 +628,48 @@
           "body": "",
           "createdAt": "2026-02-24T15:33:05Z",
           "updatedAt": "2026-02-24T15:33:05Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "id": "PR_kwDOP8SUQc7GreS0",
+      "title": "Removed old nested disctionaries from examples",
+      "url": "https://github.com/yaroslavros/connect-ip-optimizations/pull/7",
+      "state": "MERGED",
+      "author": "yaroslavros",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2026-02-26T22:58:22Z",
+      "updatedAt": "2026-02-27T05:42:38Z",
+      "baseRepository": "yaroslavros/connect-ip-optimizations",
+      "baseRefName": "main",
+      "baseRefOid": "70ecae9c79b84c2b416e7597b472749609131785",
+      "headRepository": "yaroslavros/connect-ip-optimizations",
+      "headRefName": "fix-examples",
+      "headRefOid": "e4357a3470d2c95c601aff38a6b707dae2e7c038",
+      "closedAt": "2026-02-27T05:42:38Z",
+      "mergedAt": "2026-02-27T05:42:38Z",
+      "mergedBy": "tfpauly",
+      "mergeCommit": {
+        "oid": "ef5639e3c49fbe541df9912159fd85cc00558ccc"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOP8SUQc7mWmFI",
+          "commit": {
+            "abbreviatedOid": "e4357a3"
+          },
+          "author": "tfpauly",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-02-27T03:38:39Z",
+          "updatedAt": "2026-02-27T03:38:39Z",
           "comments": []
         }
       ]
