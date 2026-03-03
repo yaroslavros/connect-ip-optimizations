@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-03-01T02:04:09.026455+00:00",
+  "timestamp": "2026-03-03T01:57:02.606926+00:00",
   "repo": "yaroslavros/connect-ip-optimizations",
   "labels": [
     {
@@ -127,6 +127,38 @@
       "body": "Currently, it would be possible to set both partial checksum offload and use the derived field for checksums. Doing so would be contradictory and an error. This should be called out and explained more.",
       "createdAt": "2026-02-27T22:27:39Z",
       "updatedAt": "2026-02-27T22:27:39Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 9,
+      "id": "I_kwDOP8SUQc7vO66w",
+      "title": "Guidance on MTU consistency",
+      "url": "https://github.com/yaroslavros/connect-ip-optimizations/issues/9",
+      "state": "OPEN",
+      "author": "yaroslavros",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "From @bemasc on masque mailing list:\n\n> I'm concerned that this draft is likely to result in variable MTU.  For example, an implementation that registers a template based on a TCP SYN packet might guess that traffic class is fixed (as in the example).  A future packet on this connection with a different traffic class would not match the template, and would be sent uncompressed, resulting in a different MTU.\n\nWe should have text guiding implementors to define templates wisely so that unexpected MTU decrease could be avoided.",
+      "createdAt": "2026-03-02T22:37:58Z",
+      "updatedAt": "2026-03-02T22:37:58Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 10,
+      "id": "I_kwDOP8SUQc7vO9Jx",
+      "title": "Conservative templates examples",
+      "url": "https://github.com/yaroslavros/connect-ip-optimizations/issues/10",
+      "state": "OPEN",
+      "author": "yaroslavros",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "We should provide specific examples and guidance on typical conservative template composition that address potential mistakes in making too specific assumptions on fields that can change during lifetime of a flow.",
+      "createdAt": "2026-03-02T22:40:21Z",
+      "updatedAt": "2026-03-02T22:40:21Z",
       "closedAt": null,
       "comments": []
     }
