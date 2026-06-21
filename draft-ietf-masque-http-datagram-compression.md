@@ -3,7 +3,7 @@ title: "Extensions to Compress and Derive Fields in HTTP Datagrams"
 abbrev: "HTTP Datagram Compression"
 category: std
 
-docname: draft-rosomakho-masque-connect-ip-optimizations-latest
+docname: draft-ietf-masque-http-datagram-compression-latest
 submissiontype: IETF  # also: "independent", "editorial", "IAB", or "IRTF"
 number:
 date:
@@ -21,7 +21,7 @@ venue:
   mail: "masque@ietf.org"
   arch: "https://mailarchive.ietf.org/arch/browse/masque/"
   github: "yaroslavros/connect-ip-optimizations"
-  latest: "https://yaroslavros.github.io/connect-ip-optimizations/draft-rosomakho-masque-connect-ip-optimizations.html"
+  latest: "https://yaroslavros.github.io/connect-ip-optimizations/draft-ietf-masque-http-datagram-compression.html"
 
 author:
  -
