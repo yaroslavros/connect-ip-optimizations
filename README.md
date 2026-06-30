@@ -4,10 +4,10 @@
 
 This is the working area for the individual Internet-Draft, "Reusable templates and checksum offload for CONNECT-IP".
 
-* [Editor's Copy](https://yaroslavros.github.io/connect-ip-optimizations/#go.draft-rosomakho-masque-connect-ip-optimizations.html)
+* [Editor's Copy](https://yaroslavros.github.io/connect-ip-optimizations/#go.draft-ietf-masque-http-datagram-compression.html)
 * [Datatracker Page](https://datatracker.ietf.org/doc/draft-rosomakho-masque-connect-ip-optimizations)
 * [Individual Draft](https://datatracker.ietf.org/doc/html/draft-rosomakho-masque-connect-ip-optimizations)
-* [Compare Editor's Copy to Individual Draft](https://yaroslavros.github.io/connect-ip-optimizations/#go.draft-rosomakho-masque-connect-ip-optimizations.diff)
+* [Compare Editor's Copy to Individual Draft](https://yaroslavros.github.io/connect-ip-optimizations/#go.draft-ietf-masque-http-datagram-compression.diff)
 
 
 ## Contributing
