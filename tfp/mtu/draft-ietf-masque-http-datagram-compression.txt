@@ -5,12 +5,12 @@
 Multiplexed Application Substrate over QUIC Encryption      Y. Rosomakho
 Internet-Draft                                                   Zscaler
 Intended status: Standards Track                                T. Pauly
-Expires: 31 August 2026                                            Apple
-                                                        27 February 2026
+Expires: 2 January 2027                                            Apple
+                                                             1 July 2026
 
 
        Extensions to Compress and Derive Fields in HTTP Datagrams
-         draft-rosomakho-masque-connect-ip-optimizations-latest
+           draft-ietf-masque-http-datagram-compression-latest
 
 Abstract
 
@@ -35,10 +35,10 @@ About This Document
    This note is to be removed before publishing as an RFC.
 
    The latest revision of this draft can be found at
-   https://yaroslavros.github.io/connect-ip-optimizations/draft-
-   rosomakho-masque-connect-ip-optimizations.html.  Status information
-   for this document may be found at https://datatracker.ietf.org/doc/
-   draft-rosomakho-masque-connect-ip-optimizations/.
+   https://yaroslavros.github.io/connect-ip-optimizations/draft-ietf-
+   masque-http-datagram-compression.html.  Status information for this
+   document may be found at https://datatracker.ietf.org/doc/draft-ietf-
+   masque-http-datagram-compression/.
 
    Discussion of this document takes place on the Multiplexed
    Application Substrate over QUIC Encryption Working Group mailing list
@@ -64,7 +64,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 31 August 2026.
+   This Internet-Draft will expire on 2 January 2027.
 
 Copyright Notice
 
@@ -676,8 +676,17 @@ http-datagram-contexts = max-templates=65535, derived=(0 1), checksum=?0, mtu=15
 
 5.1.4.  Context Selection
 
-   If a packet does not match any available context, the sender MUST use
-   Context ID 0 and transmit the complete packet.
+   If a packet does not match any available Processing Context, the
+   sender MUST use Context ID 0 and transmit the complete packet.  In
+   such cases, if the packet is transmitted in an HTTP/3 Datagram, it
+   might not fit within the current path MTU towards the peer.  When the
+   packet is larger than sizes known to fit within the path MTU as
+   HTTP/3 Datagrams, the sender SHOULD instead send the packet in a
+   Datagram Capsule, which will be encoded on the HTTP data stream and
+   fragmented across QUIC packets if necessary.
+
+   To avoid this suboptimal behavior, senders ought to define broad
+   contexts that will be able to handle most or all expected traffic.
 
 5.2.  Receiver behavior
 
@@ -1346,10 +1355,11 @@ TEMPLATE_ASSIGN Capsule {
 9.1.  Normative References
 
    [CONNECT-ETHERNET]
-              Sedeño, A., "Proxying Ethernet in HTTP", Work in Progress,
-              Internet-Draft, draft-ietf-masque-connect-ethernet-08, 10
-              October 2025, <https://datatracker.ietf.org/doc/html/
-              draft-ietf-masque-connect-ethernet-08>.
+              Sedeño, A., "Proxying Ethernet Frames in HTTP", Work in
+              Progress, Internet-Draft, draft-ietf-masque-connect-
+              ethernet-10, 30 June 2026,
+              <https://datatracker.ietf.org/doc/html/draft-ietf-masque-
+              connect-ethernet-10>.
 
    [CONNECT-IP]
               Pauly, T., Ed., Schinazi, D., Chernyakhovsky, A.,
